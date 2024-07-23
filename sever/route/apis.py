@@ -1,0 +1,107 @@
+from flask import Blueprint, request, jsonify, make_response
+from service.Neo4jService import Neo4jService as service
+
+
+apis = Blueprint('apis', __name__, url_prefix='/api')
+
+@apis.route('/list', methods=['GET'])
+def getList():
+    dh = dict(request.headers)
+    data = {}
+    if service.isAdmin(dh['Token']):
+        data = service.list()
+    return jsonify(data), 200
+
+@apis.route('/<target>', methods=['GET'])
+def getTargets(target):
+    query = request.args.get("v").replace('"', '').replace("'", '').replace("{", ''.replace("}", ''))
+    res = service.find(target, query)
+    return make_response(jsonify(res))
+
+@apis.route("/i/dc", methods=['POST'])
+def dcinfo():
+    dh = dict(request.headers)
+    data = {}
+    if service.isAdmin(dh['Token']):
+        data = request.json
+    # データ処理
+    return data, 200
+
+@apis.route("/login", methods=['POST'])
+def login():
+    data = request.json
+    print(data)
+    res = service.login(data['mail'], data['password'])
+    # データ処理
+    return res, 200
+
+@apis.route("/logout", methods=['GET'])
+def logout():
+    dh = dict(request.headers)
+    res = service.logout(dh['Token'])
+    return {}, 200
+
+@apis.route("/make", methods=['GET'])
+def make():
+    res = service.make()
+    return jsonify(res), 200
+
+@apis.route('/own', methods=['GET'])
+def getOwn():
+    dh = dict(request.headers)
+    data = service.own(dh['Token'])
+    return jsonify(data), 200
+
+@apis.route('/oth', methods=['GET'])
+def getOth():
+    data = service.oth()
+    return jsonify(data), 200
+
+@apis.route('/link', methods=['GET'])
+def getLink():
+    tov = request.args.get("to")
+    fromv = request.args.get("from")
+    service.link(tov, fromv)
+    return {}, 200
+
+@apis.route('/ref', methods=['GET'])
+def getRef():
+    data = service.ref()
+    return jsonify(data), 200
+
+@apis.route('/odn', methods=['GET'])
+def getOwnData():
+    dh = dict(request.headers)
+    data = service.owndata(dh['Token'])
+    return jsonify(data), 200
+
+@apis.route('/odh', methods=['GET'])
+def getOthData():
+    data = service.othdata()
+    return jsonify(data), 200
+
+@apis.route('/dif', methods=['GET'])
+def getDif():
+    data = service.dif()
+    return jsonify(data), 200
+
+@apis.route('/all', methods=['GET'])
+def getAll():
+    query = request.args.get("v").replace('"', '').replace("'", '').replace("{", ''.replace("}", ''))
+    data = service.all(query)
+    return jsonify(data), 200
+
+@apis.route('/maketest', methods=['GET'])
+def getMakeTest():
+    data = service.makeTest()
+    return jsonify(data), 200
+
+@apis.route('/maketest2', methods=['GET'])
+def getMakeTest2():
+    data = service.makeTest2()
+    return jsonify(data), 200
+
+@apis.route('/hdatas', methods=['GET'])
+def getHdatas():
+    data = service.hdatas()
+    return jsonify(data), 200

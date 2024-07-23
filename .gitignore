@@ -2,3 +2,7 @@
 .pytest_cache
 
 __pycache__
+
+
+docker/neo4j/
+front/node_modules/

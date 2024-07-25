@@ -118,4 +118,16 @@ def getRemove():
     data = service.findList('', '')
     return jsonify(data), 200
 
+@apis.route('/joblist', methods=['GET'])
+def getJobList():
+    data = service.findJob('', '')
+    return jsonify(data), 200
+
+@apis.route("/i/job", methods=['POST'])
+def insertJob():
+    data = {}
+    data = request.json
+    service.job(data)
+    return jsonify(data), 200
+
 

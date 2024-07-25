@@ -3,6 +3,8 @@ import Graph, { Edge } from "react-json-graph";
 import axios from 'axios';
 
 import JSONViewer from 'react-json-viewer';
+import JsonView from '@uiw/react-json-view';
+import { monokaiTheme } from '@uiw/react-json-view/monokai';
 
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
@@ -74,7 +76,12 @@ const handleClick = async (data) => {
   const res = await axios.get('http://172.23.67.87:5000/api/remove?v=' + data, {headers: {"Token":token}, data:{}});
   if (res.data) {
     setExample(res.data);
+    setExample2({});
   }
+};
+
+const handleClick2 = async (data) => {
+  setExample2(data);
 };
 
 const Ltable = (jdata) => {
@@ -90,12 +97,12 @@ const Ltable = (jdata) => {
           <TableBody>
 
         {jdata.map(v => (
-            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }} key={countI++} >
               <TableCell component="th" scope="row">
                 {v['dtname']}
               </TableCell>
               <TableCell>
-                {Ltable2(v['jsonData'])}
+                <Button variant="outlined" size="small" onClick={() => handleClick2(v['jsonData'])}>Open</Button>
               </TableCell>
               <TableCell>
                 <Button variant="outlined" size="small" onClick={() => handleClick(v['dtname'])}><DeleteIcon /></Button>
@@ -109,25 +116,24 @@ const Ltable = (jdata) => {
 
   );
 };
-const Ltable2 = (jdata) => {
+const Ltable2 = (jdata, countI) => {
   if (typeof jdata != 'object') return jdata;
   if (jdata == []) return jdata;
   if (!jdata) return jdata;
 
   const arrList = ['auth', 'datasets', 'datas', 'catalog', '__typename', 'group', '__pmdtype'];
-  let countI = 1;
   return (
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} size="small">
           <TableBody>
 
         {Object.keys(jdata).filter((jkey) => !arrList.includes(jkey)).map(v => (
-            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }} key={countI++} >
               <TableCell component="th" scope="row">
                 {v}
               </TableCell>
               <TableCell>
-                {Ltable(jdata[v])}
+                {Ltable2(jdata[v], countI)}
               </TableCell>
             </TableRow>
         ))}
@@ -181,6 +187,7 @@ const Ltable2 = (jdata) => {
       const res = await axios.get('http://172.23.67.87:5000/api/find', {headers: {"Token":token}, data:{}});
       if (res.data) {
         setExample(res.data);
+        setExample2({});
       }
   }
   async function doXY() {
@@ -265,6 +272,12 @@ const graphJsonObj = {
     };
 
 
+  const [value, setValue] = React.useState('1');
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
   return (
     <React.StrictMode>
       <Box sx={{ width: '100%', typography: 'body1' }}>
@@ -334,6 +347,25 @@ const graphJsonObj = {
         <Divider style={{margin: "180px", marginTop: "80px", marginBottom: "80px"}}>
           <Chip label="Node" color="primary" variant="outlined" size="large" />
         </Divider>
+      </Box>
+
+      <Box sx={{ width: '100%', typography: 'body1' }}>
+        <TabContext value={value}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <TabList onChange={handleChange} aria-label="result">
+              <Tab label="Json" value="1" />
+              <Tab label="Table" value="2" />
+              <Tab label="Tree" value="3" />
+            </TabList>
+          </Box>
+          <TabPanel value="1">
+            <textarea style={{width:"100%", height:"300px"}} onChange={(event) => setExample2(event.target.value)} value={JSON.stringify(example2, null, '\t')} />
+          </TabPanel>
+          <TabPanel value="2">
+            {Ltable2(example2, 0)}
+          </TabPanel>
+          <TabPanel value="3"><JsonView style={monokaiTheme} value={example2} /></TabPanel>
+        </TabContext>
       </Box>
 
     </React.StrictMode>

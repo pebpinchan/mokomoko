@@ -279,6 +279,14 @@ class CustomNode extends React.PureComponent {
       setJcol('{\n' + headerTxt + bodyTxt);
     } 
   }
+
+  async function doJob() {
+    const data = {
+      query: jcol
+    };
+    const response = await axios.post('http://172.23.67.87:5000/api/i/job', {'queryData': jcol});
+  }
+
   async function doXY2(label, __pmdtype) {
     if ('catalog' == __pmdtype) {
       await doXY();
@@ -592,6 +600,15 @@ const graphJsonObj = {
               </TableCell>
               <TableCell>
                 <Button variant="outlined" size="small" onClick={() => doXY()}>Init</Button>
+              </TableCell>
+            </TableRow>
+            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+              <TableCell component="th" scope="row">
+              </TableCell>
+              <TableCell>
+              </TableCell>
+              <TableCell>
+                <Button variant="outlined" size="small" onClick={() => doJob()}>Job</Button>
               </TableCell>
             </TableRow>
           </TableBody>

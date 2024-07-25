@@ -185,21 +185,7 @@ export default function ArticlePage() {
   const [dddata, setDddata] = useState("");
 
 const query1 = `{
-  datasetgetQuery(nmspace: "OYNOU") {
-    uid
-    title
-    titlefuri
-    ctlgid
-    nmspace
-    prefixhttpmthd
-    prefixcnttype
-    prefixurl
-    dscript
-    issuedate
-    homepg
-    licenseurl
-    musrid
-    mdatetime
+  datas(title: "OYNOU") {
   }
 }`;
 
@@ -407,7 +393,6 @@ const Litem = () => {
   async function reset2() {
       const res = await axios.get('http://172.23.67.87:4000/dataq', {headers: {"Token":token}, data:{}});
       if (res.data) {
-        console.log(res.data);
         const arr = res.data;
         arr.push('  }\n}');
         const qstr = arr.join('\n').replace('${XXX}', text2);
@@ -416,7 +401,6 @@ const Litem = () => {
           query: qstr
         };
         const response = await axios.post('http://172.23.67.87:4000/graphql', data);
-        console.log(response.data);
         setExample(response.data);
       }
   }

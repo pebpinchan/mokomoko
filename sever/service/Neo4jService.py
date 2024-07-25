@@ -344,10 +344,16 @@ class Neo4jService:
     def job(cls, data):
         if not any(data):
             return
-
+        if not any(data['queryData']):
+            return
         dt = datetime.datetime.now()
         dateName = dt.strftime('%Y/%m/%d %H:%M:%S')
-        cypher = 'CREATE (:JobData {dtname:"' + dateName + '", jsonData:"{}", query:"' + data.replace('"', '\\"') + '", __public: "public", __group: "自社", __pmdtype: "job", __typename: "JobData"})'
+        cypher = 'CREATE (:JobData {dtname:"' + dateName + '", jsonData:"{}", query:"' + data['queryData'].replace('"', '\\"') + '", __public: "public", __group: "自社", __pmdtype: "job", __typename: "JobData"})'
+        print()
+        print()
+        print(cypher)
+        print()
+        print()
         cls.exe(cypher)
         return
 
@@ -355,7 +361,7 @@ class Neo4jService:
     def findJob(cls, target: str, value: str):
         cypher = f"MATCH(n:JobData) RETURN n"
         r = cls.exe(cypher)
-        r = list(map(lambda x: {x['n']['dtname']: json.loads(x['n']['jsonData']), 'query': x['n']['query']}, r))
+        r = list(map(lambda x: {'dtname': x['n']['dtname'], 'jsonData': json.loads(x['n']['jsonData']), 'query': x['n']['query']}, r))
         return r
 
 

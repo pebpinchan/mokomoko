@@ -1,5 +1,8 @@
 from dao.Neo4jDao import Neo4jDao
 import hashlib
+import json
+import datetime
+
 
 from neo4j import GraphDatabase
 
@@ -90,7 +93,7 @@ class Neo4jService:
         query = f"MATCH (n:Login) WHERE n.token = '{token}' RETURN n.auth AS auth"
         result = False
         try:
-            r = cls.execute(query)
+            r = cls.exe(query)
             auth = r[0]['auth']
             result = auth.lower() == 'admin'
         except Exception as error:
@@ -309,5 +312,50 @@ class Neo4jService:
             dsi['datas'] = datas
 
         return catalog
+
+    @classmethod
+    def save(cls, data):
+        if not any(data):
+            return
+        strch = []
+        for mykey in data.keys():
+            strch.append(mykey + ':"' + json.dumps(data[mykey]).replace('"', '\\"') + '"')
+
+        dt = datetime.datetime.now()
+        dateName = dt.strftime('%Y/%m/%d %H:%M:%S')
+        cypher = 'CREATE (:KnownData {dtname:"' + dateName + '", ' + ','.join(strch) + ', jsonData:"' + json.dumps(data).replace('"', '\\"') + '", __public: "public", __group: "自社", __typename: "KnownData"})'
+        cls.exe(cypher)
+        return
+
+    @classmethod
+    def remove(cls, data):
+        cypher = 'MATCH (u:KnownData{dtname:"' + data + '"}) DELETE u'
+        r = cls.exe(cypher)
+        return r
+
+    @classmethod
+    def findList(cls, target: str, value: str):
+        cypher = f"MATCH(n:KnownData) RETURN n"
+        r = cls.exe(cypher)
+        r = list(map(lambda x: {'dtname':x['n']['dtname'], 'jsonData': json.loads(x['n']['jsonData'])}, r))
+        return r
+
+    @classmethod
+    def job(cls, data):
+        if not any(data):
+            return
+
+        dt = datetime.datetime.now()
+        dateName = dt.strftime('%Y/%m/%d %H:%M:%S')
+        cypher = 'CREATE (:JobData {dtname:"' + dateName + '", jsonData:"{}", query:"' + data.replace('"', '\\"') + '", __public: "public", __group: "自社", __pmdtype: "job", __typename: "JobData"})'
+        cls.exe(cypher)
+        return
+
+    @classmethod
+    def findJob(cls, target: str, value: str):
+        cypher = f"MATCH(n:JobData) RETURN n"
+        r = cls.exe(cypher)
+        r = list(map(lambda x: {x['n']['dtname']: json.loads(x['n']['jsonData']), 'query': x['n']['query']}, r))
+        return r
 
 

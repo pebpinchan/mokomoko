@@ -24,8 +24,8 @@ def dcinfo():
     data = {}
     if service.isAdmin(dh['Token']):
         data = request.json
-    # データ処理
-    return data, 200
+        service.save(data)
+    return make_response(jsonify(data))
 
 @apis.route("/login", methods=['POST'])
 def login():
@@ -105,3 +105,17 @@ def getMakeTest2():
 def getHdatas():
     data = service.hdatas()
     return jsonify(data), 200
+
+@apis.route('/find', methods=['GET'])
+def getFindList():
+    data = service.findList('', '')
+    return jsonify(data), 200
+
+@apis.route('/remove', methods=['GET'])
+def getRemove():
+    query = request.args.get("v")
+    res = service.remove(query)
+    data = service.findList('', '')
+    return jsonify(data), 200
+
+

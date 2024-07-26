@@ -114,7 +114,7 @@ class Neo4jService:
         cls.login('admin@pebblecorp.co.jp', 'pass')
         cls.login('user@pebblecorp.co.jp', 'pass')
 
-        cypher = 'MATCH (u) WHERE u.__pmdtype IN ["data", "catalog", "dataset"] DETACH DELETE u'
+        cypher = 'MATCH (u) WHERE u.__pmdtype IN ["data", "catalog", "dataset", "category", "alias", "group", "metadata", "schema"] DETACH DELETE u'
         r = cls.exe(cypher)
         cls.exe('CREATE (:TestCatalog {title: "CatalogA", auth: "public", tag: "カタログ", body: "XXX", __pmdtype: "catalog", __typename: "TestCatalog"})')
         cls.exe('CREATE (:TestDataSet {title: "自社公開1", auth: "public", group: "自社", tag: "データセット", body: "XXX", __pmdtype: "dataset", __typename: "TestDataSet"})')
@@ -206,6 +206,52 @@ class Neo4jService:
 
         cypher = 'Match(a:HCatalog)\nMatch(b:HDataSet)\nCREATE (a)<-[:HLink]-(b)'
         r = cls.exe(cypher)
+
+
+        cls.exe('CREATE (:Category {pname: "家", ids: "家具", __pmdtype: "category", __typename: "Category"})')
+        cls.exe('CREATE (:Category {pname: "家具", ids: "机,椅子", __pmdtype: "category", __typename: "Category"})')
+        cls.exe('CREATE (:Category {pname: "公園", ids: "椅子", __pmdtype: "category", __typename: "Category"})')
+
+
+        cls.exe('CREATE (:Group {pname: "家具", ids: "sid : mid", pid: "家", __pmdtype: "group", __typename: "Group"})')
+        cls.exe('CREATE (:Group {pname: "机", ids: "sid : mid", pid: "家具", __pmdtype: "group", __typename: "Group"})')
+        cls.exe('CREATE (:Group {pname: "椅子", ids: "sid : mid", pid: "家具", __pmdtype: "group", __typename: "Group"})')
+        cls.exe('CREATE (:Group {pname: "椅子", ids: "sid : mid", pid: "公園", __pmdtype: "group", __typename: "Group"})')
+
+
+
+        cls.exe('CREATE (:Alias {pname: "机", id: "sid : mid", ids: "板,足,ネジ", pid: "家具", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "椅子", id: "sid : mid", ids: "木,金属", pid: "家具", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "板", id: "sid : mid", ids: "2022", pid: "机", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "ネジ", id: "sid : mid", ids: "2023", pid: "机", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "足", id: "sid : mid", ids: "2024", pid: "机", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "木", id: "sid : mid", ids: "木", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "金属", id: "sid : mid", ids: "木でない", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "ベンチ", id: "sid : mid", ids: "詳細1", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "金具", id: "sid : mid", ids: "詳細2", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "足",   id: "sid : mid", ids: "高さ", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+
+
+
+        cls.exe('CREATE (:DataSet {pname: "板", ids: "fileIdA", pid: "机", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "足", ids: "fileIdB", pid: "机", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "ネジ", ids: "fileIdC", pid: "机", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "木", ids: "fileIdA,fileIdB", pid: "椅子", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "金属", ids: "fileIdC", pid: "椅子", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "2022", ids: "fileIdA", pid: "板", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "2023", ids: "fileIdB", pid: "ネジ", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "2024", ids: "fileIdC", pid: "足", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "木", ids: "fileIdA,fileIdB", pid: "木", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "木でない", ids: "fileIdC", pid: "金属", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "詳細1", ids: "fileIdA,fileIdB", pid: "ベンチ", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "詳細2", ids: "fileIdA,fileIdB", pid: "金具", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pname: "高さ", ids: "fileIdC", pid: "足", __pmdtype: "dataset", __typename: "DataSet"})')
+
+        jsonStr = '{"children":[{"name":"file_id","displayName":{"ja":"ファイルID"}},{"name":"datafile_name","displayName":{"ja":"データファイル名"}},{"name":"summary","displayName":{"ja":"データファイル概要"}}]}'
+        cls.exe('CREATE (:Schema {id: "sid", jsonStr: "' + jsonStr.replace('"', '\\"') + '", __pmdtype: "schema", __typename: "Schema"})')
+        jsonStr = '{\"list\":[{\"data\":{\"file_id\":\"fileIdA\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/出力1.ply\",\"summary\":\"Test1用\"}},{\"data\":{\"file_id\":\"fileIdB\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/出力2.ply\",\"summary\":\"Test2用\"}},{\"data\":{\"file_id\":\"fileIdC\",\"datafile_name\":\"f977c241-e6f1-4ae0-b1d9-00719befca73/出力3.zip\",\"summary\":\"Test3用\"}}]}'
+        cls.exe('CREATE (:MetaData {id: "mid", jsonStr: "' + jsonStr.replace('"', '\\"') + '", __pmdtype: "metadata", __typename: "MetaData"})')
+        cls.exe('Match(a:MetaData{id: "mid"})\nMatch(b:Schema {id: "sid"})\nCREATE (a)<-[:MetaDataHasSchema{id: "sid : mid"}]-(b)')
 
         r = cls.exe('Match(a)<-[r:TestLink]-(b) return a, b')
         return r 
@@ -363,5 +409,38 @@ class Neo4jService:
         r = cls.exe(cypher)
         r = list(map(lambda x: {'dtname': x['n']['dtname'], 'jsonData': json.loads(x['n']['jsonData']), 'query': x['n']['query']}, r))
         return r
+
+    @classmethod
+    def pdatas(cls):
+        cdatas = cls.exe("MATCH (a:Category) RETURN a")
+        categorys = list(map(lambda x: x['a'], cdatas))
+
+        for cati in categorys:
+            cati['datas'] = []
+            for groId in cati['ids'].split(','):
+                gdatas = cls.exe('MATCH (b:Group{pname:"' + groId + '", pid:"' + cati['pname'] + '"}) RETURN b')
+                group = gdatas[0]['b']
+                cati['datas'].append(group)
+                adatas = cls.exe('MATCH (c:Alias{pid:"' + group['pname'] + '"}) RETURN c')
+                aliass = list(map(lambda x: x['c'], adatas))
+                group['datas'] = aliass
+                for alii in aliass:
+                    alii['datas'] = []
+                    for datId in alii['ids'].split(','):
+                        ddatas = cls.exe('MATCH (d:DataSet{pname:"' + datId + '", pid:"' + alii['pname'] + '"}) RETURN d')
+                        dataset = ddatas[0]['d']
+                        alii['datas'].append(dataset)
+        return categorys
+
+
+    @classmethod
+    def pdacs(cls):
+        r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema]-(b:Schema) return a, b')
+        datas = []
+        for ri in r:
+            schema = ri['b']
+            metadata = ri['a']
+            datas.append({schema['id'] + ' : ' + metadata['id']: {'schema': schema, 'metadata': metadata}})
+        return datas
 
 

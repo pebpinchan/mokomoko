@@ -130,4 +130,14 @@ def insertJob():
     service.job(data)
     return jsonify(data), 200
 
+@apis.route('/pdatas', methods=['GET'])
+def getPdatas():
+    data = service.pdatas()
+    return jsonify(data), 200
+
+@apis.route('/pdacs', methods=['GET'])
+def getPdacs():
+    data = service.pdacs()
+    return jsonify(data), 200
+
 

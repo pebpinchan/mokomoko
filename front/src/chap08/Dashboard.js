@@ -37,6 +37,7 @@ import TopPage from './TopPage';
 import ArticlePage from './ArticlePage';
 import AboutPage from './AboutPage';
 import GraphMap from './GraphMap';
+import OldGraphMap from './OldGraphMap';
 import InfoPage from './InfoPage';
 import DataList from './DataList';
 
@@ -207,6 +208,7 @@ function DashboardContent() {
           <Route path="/map" element={<InfoPage />} />
           <Route path="/list" element={<DataList />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/old" element={<OldGraphMap />} />
           <Route path="/" element={<GraphMap />} />
         </Routes>
       </>

@@ -202,72 +202,28 @@ class CustomNode extends React.PureComponent {
   const [othData, setOthData] = useState("");
   const [jcol, setJcol] = useState("");
   async function doSomethingWithArg() {
-    if (text2.length == 0) return;
-    if (text2.indexOf('カタログ') >= 0) {
-      let headerTxt = '  links(start: "' + text2 + '", end: "' + text3 + '") {';
+    if (text3.length == 0) return;
+      let headerTxt = '  export(category: "' + text3 + '") {';
       const bodyTxt = `
-    ... on HCatalog {
-      title
-      body
-      datasets {
-        title
-        body
-        datas {
-          title
-          body
-        }
-      }
-    }
-  }
-}
-`;
-      setJcol('{\n' + headerTxt + bodyTxt);
-    } else if (text2.indexOf('データセット') >= 0) {
-      let headerTxt = '  links(start: "' + text2 + '", end: "' + text3 + '") {';
-      const bodyTxt = `
-    ... on HDataSet {
-      title
-      body
-      catalog {
-        title
-        body
-        datasets {
-          title
-          body
-          datas {
-            title
-            body
-          }
-        }
-      }
+    pname
+    datas {
+      pname
       datas {
-        title
-        body
-      }
-    }
-  }
-}
-`;
-      setJcol('{\n' + headerTxt + bodyTxt);
-    } else {
-      let headerTxt = '  links(start: "' + text2 + '", end: "' + text3 + '") {';
-      const bodyTxt = `
-    ... on HData {
-      title
-      body
-      datasets {
-        title
-        body
-        catalog {
-          title
-          body
-          datasets {
-            title
-            body
-            datas {
-              title
-              body
-            }
+        pname
+        schema {
+          id
+          jsonStr
+        }
+        metadata {
+          id
+          jsonStr
+        }
+        datas {
+          pname
+          datas {
+            datafile_name
+            file_id
+            summary
           }
         }
       }
@@ -276,7 +232,6 @@ class CustomNode extends React.PureComponent {
 }
 `;
       setJcol('{\n' + headerTxt + bodyTxt);
-    } 
   }
 
   async function doXY2(label, __pmdtype) {
@@ -667,7 +622,6 @@ const graphJsonObj = {
           <TableBody>
             <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
               <TableCell component="th" scope="row">
-                <TextField value={text2} onChange={(event) => setText2(event.target.value)} label="start" variant="standard" />
               </TableCell>
               <TableCell>
               </TableCell>

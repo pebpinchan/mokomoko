@@ -35,7 +35,46 @@ squ = """
 type Query {
     datas(title: String!): [SearchDataResult]!
     links(start: String, end: String): SearchResult
+    export(category: String!): Category
 }
+
+type Category {
+    pname: String
+    ids: String
+    datas: [Group]
+}
+type Group {
+    pname: String
+    ids: String
+    pid: String
+    datas: [Alias]
+}
+type Alias {
+    pname: String
+    id: String
+    ids: String
+    ppid: String
+    pid: String
+    datas: [DataSet]
+    schema: DacsData
+    metadata: DacsData
+}
+type DataSet {
+    pname: String
+    ids: String
+    pid: String
+    datas: [Data]
+}
+type Data {
+    datafile_name: String
+    file_id: String
+    summary: String
+}
+type DacsData {
+    id: String
+    jsonStr: String
+}
+
 
 type HCatalog {
     title: String
@@ -198,6 +237,30 @@ def resolve_datas(_, info, title):
             arr.append(obj['n'])
     print(arr)
     return arr
+
+@query.field("export")
+def resolve_export(_, info, category: str):
+    catClause = '{pname: "' + category + '"}'
+
+    cdatas = exe('MATCH (a:Category' + catClause + ') RETURN a')
+    cati = cdatas[0]['a']
+
+    cati['datas'] = []
+    for groId in cati['ids'].split(','):
+        gdatas = exe('MATCH (b:Group{pname:"' + groId + '", pid:"' + cati['pname'] + '"}) RETURN b')
+        group = gdatas[0]['b']
+        cati['datas'].append(group)
+
+        adatas = exe('MATCH (c:Alias{ppid:"' + cati['pname'] + '", pid:"' + group['pname'] + '"}) RETURN c')
+        aliass = list(map(lambda x: x['c'], adatas))
+        group['datas'] = aliass
+        for alii in aliass:
+            alii['datas'] = []
+            for datId in alii['ids'].split(','):
+                ddatas = exe('MATCH (d:DataSet{pname:"' + datId + '", pid:"' + alii['pname'] + '"}) RETURN d')
+                dataset = ddatas[0]['d']
+                alii['datas'].append(dataset)
+    return cati
 
 @app.route("/dataq", methods=["GET"])
 def getDatasQuery():

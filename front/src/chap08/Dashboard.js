@@ -164,9 +164,9 @@ function DashboardContent() {
               <MenuItem onClick={handleClose} component="a" href="/">
                 <HomeIcon />
               </MenuItem>
-              <MenuItem onClick={handleClose} component="a" href="/list">データ</MenuItem>
-              <MenuItem onClick={handleClose} component="a" href="/about">グラフ</MenuItem>
-              <MenuItem onClick={handleClose} component="a" href="/graph">GraphQL</MenuItem>
+              <MenuItem onClick={handleClose} component="a" href="/list">DaCS連携</MenuItem>
+              <MenuItem onClick={handleClose} component="a" href="/about">提供者</MenuItem>
+              <MenuItem onClick={handleClose} component="a" href="/graph">分析</MenuItem>
               <MenuItem onClick={handleLogout} component="a" href="/login">
                 <LogoutIcon />
               </MenuItem>

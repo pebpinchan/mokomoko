@@ -220,16 +220,16 @@ class Neo4jService:
 
 
 
-        cls.exe('CREATE (:Alias {pname: "机", id: "sid : mid", ids: "板,足,ネジ", pid: "家具", __pmdtype: "alias", __typename: "Alias"})')
-        cls.exe('CREATE (:Alias {pname: "椅子", id: "sid : mid", ids: "木,金属", pid: "家具", __pmdtype: "alias", __typename: "Alias"})')
-        cls.exe('CREATE (:Alias {pname: "板", id: "sid : mid", ids: "2022", pid: "机", __pmdtype: "alias", __typename: "Alias"})')
-        cls.exe('CREATE (:Alias {pname: "ネジ", id: "sid : mid", ids: "2023", pid: "机", __pmdtype: "alias", __typename: "Alias"})')
-        cls.exe('CREATE (:Alias {pname: "足", id: "sid : mid", ids: "2024", pid: "机", __pmdtype: "alias", __typename: "Alias"})')
-        cls.exe('CREATE (:Alias {pname: "木", id: "sid : mid", ids: "木", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
-        cls.exe('CREATE (:Alias {pname: "金属", id: "sid : mid", ids: "木でない", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
-        cls.exe('CREATE (:Alias {pname: "ベンチ", id: "sid : mid", ids: "詳細1", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
-        cls.exe('CREATE (:Alias {pname: "金具", id: "sid : mid", ids: "詳細2", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
-        cls.exe('CREATE (:Alias {pname: "足",   id: "sid : mid", ids: "高さ", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "机", id: "sid : mid", ids: "板,足,ネジ", ppid: "家", pid: "家具", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "椅子", id: "sid : mid", ids: "木,金属", ppid: "家", pid: "家具", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "板", id: "sid : mid", ids: "2022", ppid: "家具", pid: "机", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "ネジ", id: "sid : mid", ids: "2023", ppid: "家具", pid: "机", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "足", id: "sid : mid", ids: "2024", ppid: "家具", pid: "机", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "木", id: "sid : mid", ids: "木", ppid: "家具", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "金属", id: "sid : mid", ids: "木でない", ppid: "家具", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "ベンチ", id: "sid : mid", ids: "詳細1", ppid: "公園", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "金具", id: "sid : mid", ids: "詳細2", ppid: "公園", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:Alias {pname: "足",   id: "sid : mid", ids: "高さ", ppid: "公園", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
 
 
 
@@ -411,8 +411,12 @@ class Neo4jService:
         return r
 
     @classmethod
-    def pdatas(cls):
-        cdatas = cls.exe("MATCH (a:Category) RETURN a")
+    def pdatas(cls, value):
+        catClause = ''
+        if len(value) > 0:
+            catClause = '{pname: "' + value + '"}'
+
+        cdatas = cls.exe('MATCH (a:Category' + catClause + ') RETURN a')
         categorys = list(map(lambda x: x['a'], cdatas))
 
         for cati in categorys:
@@ -421,7 +425,8 @@ class Neo4jService:
                 gdatas = cls.exe('MATCH (b:Group{pname:"' + groId + '", pid:"' + cati['pname'] + '"}) RETURN b')
                 group = gdatas[0]['b']
                 cati['datas'].append(group)
-                adatas = cls.exe('MATCH (c:Alias{pid:"' + group['pname'] + '"}) RETURN c')
+
+                adatas = cls.exe('MATCH (c:Alias{ppid:"' + cati['pname'] + '", pid:"' + group['pname'] + '"}) RETURN c')
                 aliass = list(map(lambda x: x['c'], adatas))
                 group['datas'] = aliass
                 for alii in aliass:
@@ -434,13 +439,31 @@ class Neo4jService:
 
 
     @classmethod
-    def pdacs(cls):
+    def pdacs(cls, value):
         r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema]-(b:Schema) return a, b')
-        datas = []
+        datas = {}
         for ri in r:
             schema = ri['b']
             metadata = ri['a']
-            datas.append({schema['id'] + ' : ' + metadata['id']: {'schema': schema, 'metadata': metadata}})
+            datas[schema['id'] + ' : ' + metadata['id']] = {'schema': schema, 'metadata': metadata}
         return datas
 
+
+
+    @classmethod
+    def pfdata(cls, value):
+        r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema]-(b:Schema) return a')
+        datas = {}
+        for ri in r:
+            metadata = json.loads(ri['a']['jsonStr'])
+            for fi in metadata['list']:
+                datas[fi['data']['file_id']] = fi['data']
+        return datas
+
+
+    @classmethod
+    def pcdata(cls):
+        cdatas = cls.exe("MATCH (a:Category) RETURN a")
+        categorys = list(map(lambda x: x['a']['pname'], cdatas))
+        return categorys
 

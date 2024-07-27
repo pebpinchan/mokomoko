@@ -132,12 +132,27 @@ def insertJob():
 
 @apis.route('/pdatas', methods=['GET'])
 def getPdatas():
-    data = service.pdatas()
+    query = request.args.get("v")
+    data = service.pdatas(query)
     return jsonify(data), 200
 
 @apis.route('/pdacs', methods=['GET'])
 def getPdacs():
-    data = service.pdacs()
+    query = request.args.get("v")
+    data = service.pdacs(query)
+    return jsonify(data), 200
+
+
+@apis.route('/pfdata', methods=['GET'])
+def getPpfdata():
+    query = request.args.get("v")
+    data = service.pfdata(query)
+    return jsonify(data), 200
+
+
+@apis.route('/pcdata', methods=['GET'])
+def getPcdata():
+    data = service.pcdata()
     return jsonify(data), 200
 
 

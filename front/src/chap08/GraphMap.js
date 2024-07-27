@@ -145,7 +145,6 @@ class CustomNode extends React.PureComponent {
           setExample(node.data);
 
 
-          doXY2(node.label, node.data.__pmdtype);
 
         }}
       >
@@ -455,56 +454,147 @@ class CustomNode extends React.PureComponent {
     }
 
   }
-  async function doXY() {
+  async function doXY(selectV) {
     try {
-      const res = await axios.get('http://172.23.67.87:5000/api/hdatas', {headers: {"Token":token}, data:{}});
+      if (!selectV) {
+        selectV = text3;
+      }
+      const res = await axios.get('http://172.23.67.87:5000/api/pdatas?v=' + selectV, {headers: {"Token":token}, data:{}});
       if (res.data) {
-        let selects = [];
-        const rcatalog = res.data;
+        const res2 = await axios.get('http://172.23.67.87:5000/api/pdacs?v=' + selectV, {headers: {"Token":token}, data:{}});
+        const mapDatas = res2.data;
+        Object.keys(mapDatas).forEach((keyItem) => {
+          mapDatas[keyItem]["metadata"]['data'] = JSON.parse(mapDatas[keyItem]["metadata"]['jsonStr']);
+          mapDatas[keyItem]["schema"]['data'] = JSON.parse(mapDatas[keyItem]["schema"]['jsonStr']);
+          delete mapDatas[keyItem]["metadata"]['jsonStr'];
+          delete mapDatas[keyItem]["schema"]['jsonStr'];
+        });
+        const res3 = await axios.get('http://172.23.67.87:5000/api/pfdata?v=' + selectV, {headers: {"Token":token}, data:{}});
+        const pfDatas = res3.data;
+
+        const res4 = await axios.get('http://172.23.67.87:5000/api/pcdata', {headers: {"Token":token}, data:{}});
+        setData4(res4.data);
+
+        const categories = res.data;
         let list = [];
         let listLink = [];
-        list.push({
-          id: '0',
-          label: rcatalog.title,
-          data: rcatalog,
-          position: { x: 50, y: 0 }
-        });
+        //list.push({
+        //  id: '0',
+        //  label: 'ALL',
+        //  position: { x: 0, y: 0 }
+        //});
         let countV = 1;
-        for (let i = 0; i < rcatalog.datasets.length; i++) {
+        let heightV = -100;
+
+        let categoryPid = 0;
+        let groupPid = 0;
+        let dacsPid = 0;
+        let aliasPid = 0;
+        let dataSetPid = 0;
+
+        let pfDataHeight = 0;
+        let pfDataIdMap = {};
+        Object.keys(pfDatas).forEach((keyItem) => {
           countV += 1;
           list.push({
             id: countV,
-            label: rcatalog.datasets[i].title,
-            position: { x: 250, y: (i + 1) * 100 },
-            data: rcatalog.datasets[i]
+            label: keyItem,
+            position: { x: 1000, y: pfDataHeight },
+            data: pfDatas[keyItem]
           });
-          listLink.push({source: "0", target: countV});
-          const idvvv = countV;
-          for (let j = 0; j < rcatalog.datasets[i].datas.length; j++) {
+          pfDataIdMap[keyItem] = countV;
+          pfDataHeight += 200;
+        });
+
+
+
+        categories.forEach((category) => {
+
+          countV += 1;
+          heightV += 100;
+          list.push({
+            id: countV,
+            label: category.pname,
+            position: { x: 50, y: heightV },
+            data: category
+          });
+          heightV += 50
+          categoryPid = countV;
+
+          category.datas.forEach((group) => {
             countV += 1;
             list.push({
               id: countV,
-              label: rcatalog.datasets[i].datas[j].title,
-              position: { x: 300 + ((j + 1) * 200), y: ((i + 1) * 100) + 100 },
-              data: rcatalog.datasets[i].datas[j]
+              label: group.pname,
+              position: { x: 150, y: heightV },
+              data: group
             });
-            listLink.push({source: idvvv, target: countV});
-            selects.push(rcatalog.datasets[i].datas[j].title);
-          }
-        }
+            heightV += 50
+            groupPid = countV;
+            listLink.push({source: categoryPid, target: groupPid});
+
+
+            group.datas.forEach((alias) => {
+
+              countV += 1;
+              list.push({
+                id: countV,
+                label: alias.id,
+                position: { x: 250, y: heightV },
+                data: mapDatas[alias.id]
+              });
+              dacsPid = countV;
+              listLink.push({source: groupPid, target: dacsPid});
+
+
+              countV += 1;
+              list.push({
+                id: countV,
+                label: alias.pname,
+                position: { x: 450, y: heightV },
+                data: alias
+              });
+              heightV += 50
+              aliasPid = countV;
+              listLink.push({source: dacsPid, target: aliasPid});
+
+              alias.datas.forEach((dataSet) => {
+                countV += 1;
+                list.push({
+                  id: countV,
+                  label: dataSet.pname,
+                  position: { x: 550, y: heightV },
+                  data: dataSet
+                });
+                heightV += 50
+                dataSetPid = countV;
+                listLink.push({source: aliasPid, target: dataSetPid});
+
+                const pfDataIds = dataSet.ids.split(',');
+                pfDataIds.forEach((pfDataId) => {
+                  listLink.push({source: dataSetPid, target: pfDataIdMap[pfDataId]});
+                });
+
+              });
+
+            });
+
+          });
+
+
+        });
         const ini = {
           nodes: list,
           edges: listLink,
           isStatic: true,
           isVertical: true,
           isDirected: true,
-          height: 150 * rcatalog.datasets.length,
+          height: countV * 50
         };
         await setData(ini);
-        await setText2(rcatalog.title);
-        await setData4(selects);
       }
     } catch (error) {
+      console.log(error);
       alert(error);
     }
   }
@@ -538,8 +628,9 @@ const graphJsonObj = {
 
 
   const Litem = () => {
-    const handleChange = (event) => {
+    const handleChange = async (event) => {
       setText3(event.target.value);
+      await doXY(event.target.value);
     };
     return (
       <Select
@@ -547,7 +638,7 @@ const graphJsonObj = {
         id="demo-simple-select-standard"
         value={text3}
         onChange={handleChange}
-        label="end"
+        label="Category"
         style={{width: "100%"}}
       >
         <MenuItem value="">
@@ -579,8 +670,6 @@ const graphJsonObj = {
                 <TextField value={text2} onChange={(event) => setText2(event.target.value)} label="start" variant="standard" />
               </TableCell>
               <TableCell>
-                <InputLabel id="demo-simple-select-standard-label">end</InputLabel>
-                <Litem />
               </TableCell>
               <TableCell>
                 <Button variant="outlined" size="small" onClick={() => doSomethingWithArg()}>Create</Button>
@@ -590,6 +679,8 @@ const graphJsonObj = {
               <TableCell component="th" scope="row">
               </TableCell>
               <TableCell>
+                <InputLabel id="demo-simple-select-standard-label">Category</InputLabel>
+                <Litem />
               </TableCell>
               <TableCell>
                 <Button variant="outlined" size="small" onClick={() => doXY()}>Init</Button>

@@ -4,6 +4,7 @@ import ArticlePage from './chap08/ArticlePage';
 import AboutPage from './chap08/AboutPage';
 import InfoPage from './chap08/InfoPage';
 import DataList from './chap08/DataList';
+import DashboardContent from './chap08/Dashboard';
 
 function App() {
   return (
@@ -11,10 +12,7 @@ function App() {
       <>
         <Routes>
           <Route path="/login" element={<TopPage />} />
-          <Route path="/list" element={<DataList />} />
-          <Route path="/graph" element={<ArticlePage />} />
-          <Route path="/map" element={<InfoPage />} />
-          <Route path="/" element={<AboutPage />} />
+          <Route path="/*" element={ <DashboardContent /> } />
         </Routes>
       </>
     </BrowserRouter>

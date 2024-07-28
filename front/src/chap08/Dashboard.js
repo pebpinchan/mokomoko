@@ -200,10 +200,7 @@ function DashboardContent() {
           <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
             <Grid container spacing={3}>
 
-    <BrowserRouter>
-      <>        
         <Routes>
-          <Route path="/login" element={<TopPage />} />
           <Route path="/graph" element={<ArticlePage />} />
           <Route path="/map" element={<InfoPage />} />
           <Route path="/list" element={<DataList />} />
@@ -211,8 +208,6 @@ function DashboardContent() {
           <Route path="/old" element={<OldGraphMap />} />
           <Route path="/" element={<GraphMap />} />
         </Routes>
-      </>
-    </BrowserRouter>
 
 
 

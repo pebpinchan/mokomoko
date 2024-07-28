@@ -440,26 +440,49 @@ class Neo4jService:
 
     @classmethod
     def pdacs(cls, value):
-        r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema]-(b:Schema) return a, b')
+        catClause = ''
+        if len(value) > 0:
+            catClause = '{pname: "' + value + '"}'
+
+        cdatas = cls.exe('MATCH (a:Category' + catClause + ') RETURN a')
+        categorys = list(map(lambda x: x['a'], cdatas))
+
         datas = {}
-        for ri in r:
-            schema = ri['b']
-            metadata = ri['a']
-            datas[schema['id'] + ' : ' + metadata['id']] = {'schema': schema, 'metadata': metadata}
+        for cati in categorys:
+            for groId in cati['ids'].split(','):
+                gdatas = cls.exe('MATCH (b:Group{pname:"' + groId + '", pid:"' + cati['pname'] + '"}) RETURN b')
+                group = gdatas[0]['b']
+                for dacsId in group['ids'].split(','):
+                    r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema{id: "' + dacsId + '"}]-(b:Schema) return a, b')
+                    for ri in r:
+                        schema = ri['b']
+                        metadata = ri['a']
+                        datas[schema['id'] + ' : ' + metadata['id']] = {'schema': schema, 'metadata': metadata}
         return datas
 
 
 
     @classmethod
     def pfdata(cls, value):
-        r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema]-(b:Schema) return a')
-        datas = {}
-        for ri in r:
-            metadata = json.loads(ri['a']['jsonStr'])
-            for fi in metadata['list']:
-                datas[fi['data']['file_id']] = fi['data']
-        return datas
+        catClause = ''
+        if len(value) > 0:
+            catClause = '{pname: "' + value + '"}'
 
+        cdatas = cls.exe('MATCH (a:Category' + catClause + ') RETURN a')
+        categorys = list(map(lambda x: x['a'], cdatas))
+
+        datas = {}
+        for cati in categorys:
+            for groId in cati['ids'].split(','):
+                gdatas = cls.exe('MATCH (b:Group{pname:"' + groId + '", pid:"' + cati['pname'] + '"}) RETURN b')
+                group = gdatas[0]['b']
+                for dacsId in group['ids'].split(','):
+                    r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema{id: "' + dacsId + '"}]-(b:Schema) return a')
+                    for ri in r:
+                        metadata = json.loads(ri['a']['jsonStr'])
+                        for fi in metadata['list']:
+                            datas[fi['data']['file_id']] = fi['data']
+        return datas
 
     @classmethod
     def pcdata(cls):

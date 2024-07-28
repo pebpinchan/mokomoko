@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 from ariadne import InputType
 
+import json
 from neo4j import GraphDatabase
 
 from ariadne import ObjectType,graphql_sync,  QueryType, gql, make_executable_schema
@@ -240,12 +241,28 @@ def resolve_datas(_, info, title):
 
 @query.field("export")
 def resolve_export(_, info, category: str):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     catClause = '{pname: "' + category + '"}'
 
     cdatas = exe('MATCH (a:Category' + catClause + ') RETURN a')
     cati = cdatas[0]['a']
 
     cati['datas'] = []
+    dacsDatas = {}
+    fileDatas = {}
     for groId in cati['ids'].split(','):
         gdatas = exe('MATCH (b:Group{pname:"' + groId + '", pid:"' + cati['pname'] + '"}) RETURN b')
         group = gdatas[0]['b']
@@ -254,6 +271,18 @@ def resolve_export(_, info, category: str):
         adatas = exe('MATCH (c:Alias{ppid:"' + cati['pname'] + '", pid:"' + group['pname'] + '"}) RETURN c')
         aliass = list(map(lambda x: x['c'], adatas))
         group['datas'] = aliass
+
+        for dacsId in group['ids'].split(','):
+            r = exe('Match(a:MetaData)<-[r:MetaDataHasSchema{id: "' + dacsId + '"}]-(b:Schema) return a, b')
+            for ri in r:
+                schema = ri['b']
+                metadata = ri['a']
+                dacsDatas[dacsId] = {'schema': schema, 'metadata': metadata}
+
+                metadataJson = json.loads(ri['a']['jsonStr'])
+                for fi in metadataJson['list']:
+                    fileDatas[fi['data']['file_id']] = fi['data']
+
         for alii in aliass:
             alii['datas'] = []
             for datId in alii['ids'].split(','):

@@ -8,7 +8,7 @@ import DataList from './chap08/DataList';
 function App() {
   return (
     <BrowserRouter>
-      <>        
+      <>
         <Routes>
           <Route path="/login" element={<TopPage />} />
           <Route path="/list" element={<DataList />} />
@@ -22,3 +22,4 @@ function App() {
 }
 
 export default App;
+

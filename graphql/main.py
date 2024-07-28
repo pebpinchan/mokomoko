@@ -284,10 +284,17 @@ def resolve_export(_, info, category: str):
                     fileDatas[fi['data']['file_id']] = fi['data']
 
         for alii in aliass:
+
+            alii['schema'] = dacsDatas[alii['id']]['schema']
+            alii['metadata'] = dacsDatas[alii['id']]['metadata']
+
             alii['datas'] = []
             for datId in alii['ids'].split(','):
                 ddatas = exe('MATCH (d:DataSet{pname:"' + datId + '", pid:"' + alii['pname'] + '"}) RETURN d')
                 dataset = ddatas[0]['d']
+                dataset['datas'] = []
+                for fileId in dataset['ids'].split(','):
+                    dataset['datas'].append(fileDatas[fileId])
                 alii['datas'].append(dataset)
     return cati
 

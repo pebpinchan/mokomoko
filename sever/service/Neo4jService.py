@@ -359,32 +359,41 @@ class Neo4jService:
 
         return catalog
 
+
     @classmethod
     def save(cls, data):
         if not any(data):
             return
-        strch = []
-        for mykey in data.keys():
-            strch.append(mykey + ':"' + json.dumps(data[mykey]).replace('"', '\\"') + '"')
 
-        dt = datetime.datetime.now()
-        dateName = dt.strftime('%Y/%m/%d %H:%M:%S')
-        cypher = 'CREATE (:KnownData {dtname:"' + dateName + '", ' + ','.join(strch) + ', jsonData:"' + json.dumps(data).replace('"', '\\"') + '", __public: "public", __group: "自社", __typename: "KnownData"})'
-        cls.exe(cypher)
+        schema = data['schema']
+        metadata = data['metadata']
+        r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema{id: "' + schema['id'] + ' : ' + metadata['id'] + '"}]-(b:Schema) return a, b')
+        if len(r) > 0:
+            return
+
+        cls.exe('CREATE (:Schema {id: "' + schema['id'] + '", jsonStr: ' + json.dumps(schema['jsonStr'], ensure_ascii=False, separators=(',', ':')) + ', __pmdtype: "schema", __typename: "Schema"})')
+        cls.exe('CREATE (:MetaData {id: "' + metadata['id'] + '", jsonStr: ' + json.dumps(metadata['jsonStr'], ensure_ascii=False, separators=(',', ':')) + ', __pmdtype: "metadata", __typename: "MetaData"})')
+        cls.exe('Match(a:MetaData{id: "' + metadata['id'] + '"})\nMatch(b:Schema {id: "' + schema['id'] + '"})\nCREATE (a)<-[:MetaDataHasSchema{id: "' + schema['id'] + ' : ' + metadata['id'] + '"}]-(b)')
+
+
         return
+
 
     @classmethod
     def remove(cls, data):
-        cypher = 'MATCH (u:KnownData{dtname:"' + data + '"}) DELETE u'
+        cypher = 'MATCH (a:MetaData)<-[r:MetaDataHasSchema{id: "' + data + '"}]-(b:Schema) DETACH DELETE a, r, b'
         r = cls.exe(cypher)
         return r
 
     @classmethod
-    def findList(cls, target: str, value: str):
-        cypher = f"MATCH(n:KnownData) RETURN n"
-        r = cls.exe(cypher)
-        r = list(map(lambda x: {'dtname':x['n']['dtname'], 'jsonData': json.loads(x['n']['jsonData'])}, r))
-        return r
+    def findList(cls):
+        datas = []
+        r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema]-(b:Schema) return a, b')
+        for ri in r:
+            schema = ri['b']
+            metadata = ri['a']
+            datas.append({'id': schema['id'] + ' : ' + metadata['id'], 'schema': schema, 'metadata': metadata})
+        return datas
 
     @classmethod
     def job(cls, data):

@@ -40,6 +40,7 @@ import GraphMap from './GraphMap';
 import OldGraphMap from './OldGraphMap';
 import InfoPage from './InfoPage';
 import DataList from './DataList';
+import DataProv from './DataProv';
 
 
 
@@ -165,7 +166,7 @@ function DashboardContent() {
                 <HomeIcon />
               </MenuItem>
               <MenuItem onClick={handleClose} component="a" href="/list">DaCS連携</MenuItem>
-              <MenuItem onClick={handleClose} component="a" href="/about">提供者</MenuItem>
+              <MenuItem onClick={handleClose} component="a" href="/prov">提供者</MenuItem>
               <MenuItem onClick={handleClose} component="a" href="/graph">分析</MenuItem>
               <MenuItem onClick={handleLogout} component="a" href="/login">
                 <LogoutIcon />
@@ -206,6 +207,7 @@ function DashboardContent() {
           <Route path="/list" element={<DataList />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/old" element={<OldGraphMap />} />
+          <Route path="/prov" element={<DataProv />} />
           <Route path="/" element={<GraphMap />} />
         </Routes>
 

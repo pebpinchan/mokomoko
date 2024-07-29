@@ -108,14 +108,14 @@ def getHdatas():
 
 @apis.route('/find', methods=['GET'])
 def getFindList():
-    data = service.findList('', '')
+    data = service.findList()
     return jsonify(data), 200
 
 @apis.route('/remove', methods=['GET'])
 def getRemove():
     query = request.args.get("v")
     res = service.remove(query)
-    data = service.findList('', '')
+    data = service.findList()
     return jsonify(data), 200
 
 @apis.route('/joblist', methods=['GET'])

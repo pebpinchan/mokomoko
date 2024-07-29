@@ -52,7 +52,7 @@ const GrapgContext = React.createContext({});
 
 
 
-export default function GraphMap() {
+export default function DataProv() {
 
 
 
@@ -212,9 +212,11 @@ class CustomNode extends React.PureComponent {
         pname
         schema {
           id
+          jsonStr
         }
         metadata {
           id
+          jsonStr
         }
         datas {
           pname

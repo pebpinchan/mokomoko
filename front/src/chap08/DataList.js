@@ -99,13 +99,13 @@ const Ltable = (jdata) => {
         {jdata.map(v => (
             <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }} key={countI++} >
               <TableCell component="th" scope="row">
-                {v['dtname']}
+                {v['id']}
               </TableCell>
               <TableCell>
-                <Button variant="outlined" size="small" onClick={() => handleClick2(v['jsonData'])}>Open</Button>
+                <Button variant="outlined" size="small" onClick={() => handleClick2(v)}>Open</Button>
               </TableCell>
               <TableCell>
-                <Button variant="outlined" size="small" onClick={() => handleClick(v['dtname'])}><DeleteIcon /></Button>
+                <Button variant="outlined" size="small" onClick={() => handleClick(v['id'])}><DeleteIcon /></Button>
               </TableCell>
             </TableRow>
         ))}
@@ -161,12 +161,60 @@ const Ltable2 = (jdata, countI) => {
   };
   
 
+const iniSchema = `
+{
+    "children": [{
+        "name": "file_id",
+        "displayName": {
+            "ja": "ファイルID"
+        }
+    }, {
+        "name": "datafile_name",
+        "displayName": {
+            "ja": "データファイル名"
+        }
+    }, {
+        "name": "summary",
+        "displayName": {
+            "ja": "データファイル概要"
+        }
+    }]
+}
+`;
+const iniMetaData = `
+{
+  "list": [
+    {
+      "data": {
+        "file_id": "fileIdX",
+        "datafile_name": "efff13f2-cf32-41ad-9443-ba2b1c40fd5a/出力1.ply",
+        "summary": "Test1用"
+      }
+    },
+    {
+      "data": {
+        "file_id": "fileIdY",
+        "datafile_name": "efff13f2-cf32-41ad-9443-ba2b1c40fd5a/出力2.ply",
+        "summary": "Test2用"
+      }
+    },
+    {
+      "data": {
+        "file_id": "fileIdZ",
+        "datafile_name": "f977c241-e6f1-4ae0-b1d9-00719befca73/出力3.zip",
+        "summary": "Test3用"
+      }
+    }
+  ]
+}
+`;
 
 
 
-  const [text, setText] = useState("y.yokouchi@pebblecorp.co.jp");
-  const [text2, setText2] = useState("http://172.23.67.87:5000/api/i/dc");
-  const [text3, setText3] = useState('{"test":"value"}');
+  const [text1, setText1] = useState("schema1");
+  const [text2, setText2] = useState("metadata1");
+  const [text3, setText3] = useState(iniSchema);
+  const [text4, setText4] = useState(iniMetaData);
   const [data, setData] = useState(initial);
   const [data2, setData2] = useState(initial);
   const [data3, setData3] = useState(initial);
@@ -178,10 +226,18 @@ const Ltable2 = (jdata, countI) => {
   const [othData, setOthData] = useState("");
   const [jcol, setJcol] = useState("");
   async function doSomethingWithArg() {
-    let data = {};
-    if (text3) data = text3; 
-    const response = await axios.post(text2, data, {headers: {"Token":token, 'Content-Type': 'application/json'}});
-    setJcol(JSON.stringify(response.data, null, '\t'));
+    if (text1 && text2 && text3 && text4) {
+      let datan = {};
+      datan['id'] = text1 + ' : ' + text2;
+      datan['schema'] = {};
+      datan['metadata'] = {};
+      datan['schema']['id'] = text1;
+      datan['metadata']['id'] = text2;
+      datan['schema']['jsonStr'] = JSON.parse(JSON.stringify(text3).replace( /\\n/g , ''));
+      datan['metadata']['jsonStr'] = JSON.parse(JSON.stringify(text4).replace( /\\n/g , ''));
+      const response = await axios.post("http://172.23.67.87:5000/api/i/dc", datan, {headers: {"Token":token, 'Content-Type': 'application/json'}});
+      setJcol(JSON.stringify(response.data, null, '\t'));
+    }
   }
   async function doXY2(label, __pmdtype) {
       const res = await axios.get('http://172.23.67.87:5000/api/find', {headers: {"Token":token}, data:{}});
@@ -294,11 +350,24 @@ const graphJsonObj = {
             <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
 
               <TableCell component="th" scope="row">
-                <TextField value={text2} onChange={(event) => setText2(event.target.value)} style={{width: "100%"}} label="post" variant="standard" />
+                <TextField value={text1} onChange={(event) => setText1(event.target.value)} style={{width: "100%"}} label="Schema ID" variant="standard" />
               </TableCell>
 
               <TableCell>
                 <textarea value={text3} onChange={(event) => setText3(event.target.value)} />
+              </TableCell>
+
+              <TableCell>
+              </TableCell>
+            </TableRow>
+            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+
+              <TableCell component="th" scope="row">
+                <TextField value={text2} onChange={(event) => setText2(event.target.value)} style={{width: "100%"}} label="MetaData ID" variant="standard" />
+              </TableCell>
+
+              <TableCell>
+                <textarea value={text4} onChange={(event) => setText4(event.target.value)} />
               </TableCell>
 
               <TableCell>

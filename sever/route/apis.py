@@ -156,3 +156,29 @@ def getPcdata():
     return jsonify(data), 200
 
 
+@apis.route('/dclist', methods=['GET'])
+def getDclist():
+    data = service.dacsList()
+    return jsonify(data), 200
+
+@apis.route("/i/up", methods=['POST'])
+def dasaveup():
+    dh = dict(request.headers)
+    dataRes = []
+    if service.isAdmin(dh['Token']):
+        data = request.json
+        dataRes = service.savecat(data)
+    return make_response(jsonify(dataRes))
+
+
+@apis.route("/i/mid", methods=['POST'])
+def dasavemid():
+    dh = dict(request.headers)
+    dataRes = []
+    if service.isAdmin(dh['Token']):
+        data = request.json
+        dataRes = service.saveAlias(data)
+    return make_response(jsonify(dataRes))
+
+
+

@@ -211,8 +211,8 @@ const iniMetaData = `
 
 
 
-  const [text1, setText1] = useState("schema1");
-  const [text2, setText2] = useState("metadata1");
+  const [text1, setText1] = useState("sid1");
+  const [text2, setText2] = useState("mid1");
   const [text3, setText3] = useState(iniSchema);
   const [text4, setText4] = useState(iniMetaData);
   const [data, setData] = useState(initial);

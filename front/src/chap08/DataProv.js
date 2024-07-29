@@ -10,10 +10,6 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 
 
-import { createGraphiQLFetcher } from '@graphiql/toolkit';
-import { GraphiQL } from 'graphiql';
-import 'graphiql/graphiql.css';
-
 
 import { styled } from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
@@ -186,227 +182,75 @@ class CustomNode extends React.PureComponent {
   };
 
 
-
-
-  const [text, setText] = useState("y.yokouchi@pebblecorp.co.jp");
-  const [text2, setText2] = useState("");
-  const [text3, setText3] = useState("");
-  const [data, setData] = useState(initial);
-  const [data2, setData2] = useState(initial);
-  const [data3, setData3] = useState(initial);
+  const [text3, setText3] = useState("橋梁"); // category
+  const [textG, setTextG] = useState("スラブ"); // group
+  const [textDC, setTextDC] = useState([]); // select dacs list
+  const [textDC2, setTextDC2] = useState([]); // select dacs list
+  const [selDC, setSelDC] = useState(''); // selected dacs
+  const [selDC2, setSelDC2] = useState(''); // selected dacs
+  const [textA, setTextA] = useState("図面データ"); // group
+  const [aList, setAList] = useState([]); // select alias list
+  const [selA, setSelA] = useState(''); // selected dacs
   const [data4, setData4] = useState([]);
+  const [data, setData] = useState(initial);
   const [token, setToken] = useState("9d2ad0e79acbfad52bea1c89ac71755170be5c7a9684d1ef45298386ec2470eb");
   const [example, setExample] = useState("");
-  const [example2, setExample2] = useState("");
-  const [ownData, setOwnData] = useState("");
-  const [othData, setOthData] = useState("");
-  const [jcol, setJcol] = useState("");
-  async function doSomethingWithArg() {
-    if (text3.length == 0) return;
-      let headerTxt = '  export(category: "' + text3 + '") {';
-      const bodyTxt = `
-    pname
-    datas {
-      pname
-      datas {
-        pname
-        schema {
-          id
-          jsonStr
-        }
-        metadata {
-          id
-          jsonStr
-        }
-        datas {
-          pname
-          datas {
-            datafile_name
-            file_id
-            summary
-          }
-        }
-      }
-    }
-  }
+
+
+
+
+
+
+
+
+async function doInit() {
+  const resDC = await axios.get('http://172.23.67.87:5000/api/dclist', {headers: {"Token":token}, data:{}});
+  if (resDC.data) setTextDC(resDC.data);
 }
-`;
-      setJcol('{\n' + headerTxt + bodyTxt);
+
+
+
+
+  async function doAdd1() {
+    if (text3 && textG && selDC) {
+      let datan = {};
+      datan['category'] = text3;
+      datan['group'] = textG;
+      datan['dacsdata'] = selDC;
+      const response = await axios.post("http://172.23.67.87:5000/api/i/up", datan, {headers: {"Token":token, 'Content-Type': 'application/json'}});
+      setTextDC2(response.data);
+      await doXY(text3);
+    }
+
+
   }
 
-  async function doXY2(label, __pmdtype) {
-    if ('catalog' == __pmdtype) {
-      await doXY();
-    } else if ('dataset' == __pmdtype) {
-
-
-      const res = await axios.get('http://172.23.67.87:5000/api/hdatas', {headers: {"Token":token}, data:{}});
-      const addHeight = 200;
-      if (res.data) {
-        const rcatalog = res.data;
-        let list = [];
-        let listLink = [];
-        list.push({
-          id: '0',
-          label: rcatalog.title,
-          data: rcatalog,
-          position: { x: 50, y: 0 + addHeight }
-        });
-        let countV = 1;
-        let datasetNV = '';
-        for (let i = 0; i < rcatalog.datasets.length; i++) {
-          countV += 1;
-
-          if (label == rcatalog.datasets[i].title) {
-            datasetNV = rcatalog.datasets[i].title;
-            list.push({
-              id: countV,
-              label: rcatalog.datasets[i].title,
-              position: { x: 50, y: 0 },
-              data: rcatalog.datasets[i]
-            });
-          } else {
-            list.push({
-              id: countV,
-              label: rcatalog.datasets[i].title,
-              position: { x: 250, y: (i + 1) * 100 + addHeight },
-              data: rcatalog.datasets[i]
-            });
-          }
-          listLink.push({source: "0", target: countV});
-          const idvvv = countV;
-          for (let j = 0; j < rcatalog.datasets[i].datas.length; j++) {
-            countV += 1;
-            if (label == rcatalog.datasets[i].datas[j].title) {
-              list.push({
-                id: countV,
-                label: rcatalog.datasets[i].datas[j].title,
-                position: { x: 50, y: 0 },
-                data: rcatalog.datasets[i].datas[j]
-              });
-            } else {
-              if (datasetNV == rcatalog.datasets[i].title) {
-                list.push({
-                  id: countV,
-                  label: rcatalog.datasets[i].datas[j].title,
-                  position: { x: 300 + ((j + 1) * 200), y: 200 },
-                  data: rcatalog.datasets[i].datas[j]
-                });
-              } else {
-                list.push({
-                  id: countV,
-                  label: rcatalog.datasets[i].datas[j].title,
-                  position: { x: 300 + ((j + 1) * 200), y: ((i + 1) * 100) + 100 + addHeight },
-                  data: rcatalog.datasets[i].datas[j]
-                });
-              }
-            }
-            listLink.push({source: idvvv, target: countV});
-          }
-        }
-        const ini = {
-          nodes: list,
-          edges: listLink,
-          isStatic: true,
-          isVertical: true,
-          isDirected: true,
-          height: 150 * rcatalog.datasets.length + addHeight,
-        };
-        await setData(ini);
-        await setText2(label);
-      }
-
-
-
-
-
-
-    } else if ('data' == __pmdtype) {
-
-
-
-      const res = await axios.get('http://172.23.67.87:5000/api/hdatas', {headers: {"Token":token}, data:{}});
-      const addHeight = 200;
-      if (res.data) {
-        const rcatalog = res.data;
-        let list = [];
-        let listLink = [];
-        list.push({
-          id: '0',
-          label: rcatalog.title,
-          data: rcatalog,
-          position: { x: 50, y: 0 + addHeight }
-        });
-        let countV = 1;
-        let datasetNV = '';
-        for (let i = 0; i < rcatalog.datasets.length; i++) {
-          countV += 1;
-
-          const result = rcatalog.datasets[i].datas.filter((ddata) => label == ddata.title);
-          if (result.length > 0) {
-            datasetNV = rcatalog.datasets[i].title;
-            list.push({
-              id: countV,
-              label: rcatalog.datasets[i].title,
-              position: { x: 50, y: 100 },
-              data: rcatalog.datasets[i]
-            });
-          } else {
-            list.push({
-              id: countV,
-              label: rcatalog.datasets[i].title,
-              position: { x: 250, y: (i + 1) * 100 + addHeight },
-              data: rcatalog.datasets[i]
-            });
-          }
-          listLink.push({source: "0", target: countV});
-          const idvvv = countV;
-          for (let j = 0; j < rcatalog.datasets[i].datas.length; j++) {
-            countV += 1;
-            if (label == rcatalog.datasets[i].datas[j].title) {
-              list.push({
-                id: countV,
-                label: rcatalog.datasets[i].datas[j].title,
-                position: { x: 50, y: 0 },
-                data: rcatalog.datasets[i].datas[j]
-              });
-            } else {
-              if (datasetNV == rcatalog.datasets[i].title) {
-                list.push({
-                  id: countV,
-                  label: rcatalog.datasets[i].datas[j].title,
-                  position: { x: 300 + ((j + 1) * 200), y: 200 },
-                  data: rcatalog.datasets[i].datas[j]
-                });
-              } else {
-                list.push({
-                  id: countV,
-                  label: rcatalog.datasets[i].datas[j].title,
-                  position: { x: 300 + ((j + 1) * 200), y: ((i + 1) * 100) + 100 + addHeight },
-                  data: rcatalog.datasets[i].datas[j]
-                });
-              }
-            }
-            listLink.push({source: idvvv, target: countV});
-          }
-        }
-        const ini = {
-          nodes: list,
-          edges: listLink,
-          isStatic: true,
-          isVertical: true,
-          isDirected: true,
-          height: 150 * rcatalog.datasets.length + addHeight,
-        };
-        await setData(ini);
-        await setText2(label);
-      }
-
-
-
-    } else {
-      alert('type error');
+  async function doAdd2() {
+    if (textA && text3 && textG && selDC2) {
+      let datan = {};
+      datan['category'] = text3;
+      datan['group'] = textG;
+      datan['dacsdata'] = selDC2;
+      datan['alias'] = textA;
+      const response = await axios.post("http://172.23.67.87:5000/api/i/mid", datan, {headers: {"Token":token, 'Content-Type': 'application/json'}});
+      setAList(response.data);
+      await doXY(text3);
     }
+
+
+  }
+
+  async function doAdd3() {
+    if (text3 && textG && selDC) {
+      let datan = {};
+      datan['category'] = text3;
+      datan['group'] = textG;
+      datan['dacsdata'] = selDC;
+      const response = await axios.post("http://172.23.67.87:5000/api/i/up", datan, {headers: {"Token":token, 'Content-Type': 'application/json'}});
+      setTextDC2(response.data);
+      await doXY(text3);
+    }
+
 
   }
   async function doXY(selectV) {
@@ -414,6 +258,9 @@ class CustomNode extends React.PureComponent {
       if (!selectV) {
         selectV = text3;
       }
+      if (!selectV) return;
+        
+      
       const res = await axios.get('http://172.23.67.87:5000/api/pdatas?v=' + selectV, {headers: {"Token":token}, data:{}});
       if (res.data) {
         const res2 = await axios.get('http://172.23.67.87:5000/api/pdacs?v=' + selectV, {headers: {"Token":token}, data:{}});
@@ -458,7 +305,7 @@ class CustomNode extends React.PureComponent {
             data: pfDatas[keyItem]
           });
           pfDataIdMap[keyItem] = countV;
-          pfDataHeight += 200;
+          pfDataHeight += 50;
         });
 
 
@@ -546,6 +393,7 @@ class CustomNode extends React.PureComponent {
           isDirected: true,
           height: countV * 50
         };
+        console.log(ini);
         await setData(ini);
       }
     } catch (error) {
@@ -581,32 +429,75 @@ const graphJsonObj = {
         }]
     };
 
-
-  const Litem = () => {
+  const LSDitem = () => {
     const handleChange = async (event) => {
-      setText3(event.target.value);
-      await doXY(event.target.value);
+      setSelDC2(event.target.value);
     };
     return (
       <Select
-        labelId="demo-simple-select-standard-label"
-        id="demo-simple-select-standard"
-        value={text3}
+        labelId="lsd-label"
+        id="lsd"
+        value={selDC2}
         onChange={handleChange}
-        label="Category"
+        label="Dacs Data"
         style={{width: "100%"}}
       >
         <MenuItem value="">
-          全て
+          None
         </MenuItem>
-        {data4.map(v => (
+        {textDC2.map(v => (
           <MenuItem key={v} value={v}>{v}</MenuItem>
         ))}
       </Select>
     );
   };
 
-  const fetcher = createGraphiQLFetcher({ url: 'http://172.23.67.87:4000/graphql' });
+
+  const LDitem = () => {
+    const handleChange = async (event) => {
+      setSelDC(event.target.value);
+    };
+    return (
+      <Select
+        labelId="dacs-list-label"
+        id="dacs-list"
+        value={selDC}
+        onChange={handleChange}
+        label="Dacs Data"
+        style={{width: "100%"}}
+      >
+        <MenuItem value="">
+          None
+        </MenuItem>
+        {textDC.map(v => (
+          <MenuItem key={v} value={v}>{v}</MenuItem>
+        ))}
+      </Select>
+    );
+  };
+  const Litem = () => {
+    const handleChange = async (event) => {
+      setSelA(event.target.value);
+    };
+    return (
+      <Select
+        labelId="alias-label"
+        id="alias"
+        value={selA}
+        onChange={handleChange}
+        label="Alias"
+        style={{width: "100%"}}
+      >
+        <MenuItem value="">
+          None
+        </MenuItem>
+        {aList.map(v => (
+          <MenuItem key={v} value={v}>{v}</MenuItem>
+        ))}
+      </Select>
+    );
+  };
+
   return (
     <React.StrictMode>
       <Box sx={{ width: '100%', typography: 'body1' }}>
@@ -626,18 +517,54 @@ const graphJsonObj = {
               <TableCell>
               </TableCell>
               <TableCell>
-                <Button variant="outlined" size="small" onClick={() => doSomethingWithArg()}>Create</Button>
+              </TableCell>
+              <TableCell>
+                <Button variant="outlined" size="small" onClick={() => doInit()}>Init</Button>
               </TableCell>
             </TableRow>
             <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
               <TableCell component="th" scope="row">
+                <TextField value={text3} onChange={(event) => setText3(event.target.value)} label="Category" variant="standard" />
               </TableCell>
               <TableCell>
-                <InputLabel id="demo-simple-select-standard-label">Category</InputLabel>
+                <TextField value={textG} onChange={(event) => setTextG(event.target.value)} label="Group" variant="standard" />
+              </TableCell>
+              <TableCell>
+                <InputLabel id="dacs-list-label">DaCS Data</InputLabel>
+                <LDitem />
+              </TableCell>
+              <TableCell>
+                <Button variant="outlined" size="small" onClick={() => doAdd1()}>Add1</Button>
+              </TableCell>
+            </TableRow>
+            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+              <TableCell component="th" scope="row">
+                <TextField value={textG} onChange={(event) => setTextG(event.target.value)} label="Group" variant="standard" />
+              </TableCell>
+              <TableCell>
+                <InputLabel id="lsd-label">- DaCS Data</InputLabel>
+                <LSDitem />
+              </TableCell>
+              <TableCell component="th" scope="row">
+                <TextField value={textA} onChange={(event) => setTextA(event.target.value)} label="Alias" variant="standard" />
+              </TableCell>
+              <TableCell>
+                <Button variant="outlined" size="small" onClick={() => doAdd2()}>Add2</Button>
+              </TableCell>
+            </TableRow>
+            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+              <TableCell component="th" scope="row">
+                <InputLabel id="alias-label">- Alias</InputLabel>
                 <Litem />
               </TableCell>
               <TableCell>
-                <Button variant="outlined" size="small" onClick={() => doXY()}>Init</Button>
+                dataset
+              </TableCell>
+              <TableCell component="th" scope="row">
+                checkbox
+              </TableCell>
+              <TableCell>
+                <Button variant="outlined" size="small" onClick={() => doAdd3()}>Add3</Button>
               </TableCell>
             </TableRow>
           </TableBody>
@@ -646,7 +573,7 @@ const graphJsonObj = {
 
       <Box sx={{ width: '100%', typography: 'body1' }}>
         <Divider style={{margin: "180px", marginTop: "80px", marginBottom: "80px"}}>
-          <Chip label="Edit" color="primary" variant="outlined" size="large" />
+          <Chip label="Preview" color="primary" variant="outlined" size="large" />
         </Divider>
       </Box>
 
@@ -654,27 +581,6 @@ const graphJsonObj = {
         <GrapgContext.Provider value={{ data, setData }}>
           <Viz />
         </GrapgContext.Provider>
-      </Box>
-
-      <Box sx={{ width: '100%', typography: 'body1' }}>
-        <Divider style={{margin: "180px", marginTop: "80px", marginBottom: "80px"}}>
-          <Chip label="Query" color="primary" variant="outlined" size="large" />
-        </Divider>
-      </Box>
-
-      <Box sx={{ width: '100%', typography: 'body1' }}>
-        <Accordion>
-          <AccordionSummary
-            expandIcon={<ArrowDropDownIcon />}
-            aria-controls="panel2-content"
-            id="panel2-header"
-          >
-            <Typography>Query</Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <GraphiQL fetcher={fetcher} query={jcol} /> 
-          </AccordionDetails>
-        </Accordion>
       </Box>
 
       <Box sx={{ width: '100%', typography: 'body1' }}>

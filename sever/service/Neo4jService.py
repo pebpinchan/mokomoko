@@ -441,9 +441,10 @@ class Neo4jService:
                 for alii in aliass:
                     alii['datas'] = []
                     for datId in alii['ids'].split(','):
-                        ddatas = cls.exe('MATCH (d:DataSet{pname:"' + datId + '", pid:"' + alii['pname'] + '"}) RETURN d')
-                        dataset = ddatas[0]['d']
-                        alii['datas'].append(dataset)
+                        if len(datId) > 0:
+                            ddatas = cls.exe('MATCH (d:DataSet{pname:"' + datId + '", pid:"' + alii['pname'] + '"}) RETURN d')
+                            dataset = ddatas[0]['d']
+                            alii['datas'].append(dataset)
         return categorys
 
 
@@ -498,4 +499,67 @@ class Neo4jService:
         cdatas = cls.exe("MATCH (a:Category) RETURN a")
         categorys = list(map(lambda x: x['a']['pname'], cdatas))
         return categorys
+
+    @classmethod
+    def dacsList(cls):
+        datas = []
+        r = cls.exe('Match(a:MetaData)<-[r:MetaDataHasSchema]-(b:Schema) return a, b')
+        for ri in r:
+            schema = ri['b']
+            metadata = ri['a']
+            datas.append(schema['id'] + ' : ' + metadata['id'])
+        return datas
+
+    @classmethod
+    def savecat(cls, data):
+        if not any(data):
+            return []
+
+        cdata = cls.exe('MATCH (a:Category{pname: "' + data['category'] + '"}) RETURN a')
+        if len(cdata) > 0:
+            category = cdata[0]['a']
+            cls.exe('MATCH (a:Category{pname: "' + data['category'] + '"}) DELETE a')
+            groupArr = category['ids'].split(',')
+            groupArr.append(data['group'])
+            cls.exe('CREATE (:Category {pname: "' + data['category'] + '", ids: "' + ','.join(list(set(groupArr))) + '", __pmdtype: "category", __typename: "Category"})')
+        else:
+            cls.exe('CREATE (:Category {pname: "' + data['category'] + '", ids: "' + data['group'] + '", __pmdtype: "category", __typename: "Category"})')
+
+
+        dacsArr = []
+        gdata = cls.exe('MATCH (b:Group{pname: "' + data['group'] + '"}) RETURN b')
+        if len(gdata) > 0:
+            group = gdata[0]['b']
+            cls.exe('MATCH (b:Group{pname: "' + data['group'] + '"}) DELETE b')
+            dacsArr = group['ids'].split(',')
+            dacsArr.append(data['dacsdata'])
+            cls.exe('CREATE (:Group {pname: "' + data['group'] + '", ids: "' + ','.join(list(set(dacsArr))) + '", pid: "' + data['category'] + '", __pmdtype: "group", __typename: "Group"})')
+        else:
+            cls.exe('CREATE (:Group {pname: "' + data['group'] + '", ids: "' + data['dacsdata'] + '", pid: "' + data['category'] + '", __pmdtype: "group", __typename: "Group"})')
+            dacsArr.append(data['dacsdata'])
+
+        return list(set(dacsArr))
+
+
+    @classmethod
+    def saveAlias(cls, data):
+        if not any(data):
+            return []
+
+
+        adata = cls.exe('MATCH (c:Alias{id: "' + data['dacsdata'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) RETURN c')
+        if len(adata) > 0:
+
+            cls.exe('MATCH (c:Alias{id: "' + data['dacsdata'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) DELETE c')
+            cls.exe('CREATE (:Alias {pname: "' + data['alias'] + '", id: "' + data['dacsdata'] + '", ids: "", ppid: "' + data['category'] + '", pid: "' + data['group'] + '", __pmdtype: "alias", __typename: "Alias"})')
+        else:
+            cls.exe('CREATE (:Alias {pname: "' + data['alias'] + '", id: "' + data['dacsdata'] + '", ids: "", ppid: "' + data['category'] + '", pid: "' + data['group'] + '", __pmdtype: "alias", __typename: "Alias"})')
+
+        adata = cls.exe('MATCH (c:Alias{ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) RETURN c')
+        aliasies = list(map(lambda x: x['c'], adata))
+        dacsArr = []
+        for alias in aliasies:
+            dacsArr.append(alias['pname'])
+
+        return list(set(dacsArr))
 

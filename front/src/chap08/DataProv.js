@@ -9,6 +9,8 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 
 import { styled } from '@mui/material/styles';
@@ -182,6 +184,11 @@ class CustomNode extends React.PureComponent {
   };
 
 
+  const [dsParent, setDsParent] = useState("");
+  const [dsItems, setDsItems] = useState([]);
+  const [selDsItems, setSelDsItems] = useState([]);
+  const [selMData, setSelMData] = useState("{}");
+  const [mData, setMData] = useState("{}");
   const [text3, setText3] = useState("橋梁"); // category
   const [textG, setTextG] = useState("スラブ"); // group
   const [textDC, setTextDC] = useState([]); // select dacs list
@@ -271,6 +278,8 @@ async function doInit() {
           delete mapDatas[keyItem]["metadata"]['jsonStr'];
           delete mapDatas[keyItem]["schema"]['jsonStr'];
         });
+
+        setMData(mapDatas);
         const res3 = await axios.get('http://172.23.67.87:5000/api/pfdata?v=' + selectV, {headers: {"Token":token}, data:{}});
         const pfDatas = res3.data;
 
@@ -478,6 +487,20 @@ const graphJsonObj = {
   const Litem = () => {
     const handleChange = async (event) => {
       setSelA(event.target.value);
+      try {
+        setSelMData(mData[event.target.value]);
+        const arrVi = mData[event.target.value]['metadata']['data']['list'].map((value, index) => {
+          return {'value': index, 'name': value.data.file_id};
+        });
+        setDsItems(arrVi);
+        setDsParent(mData[event.target.value]['schema']['id'] + ' : ' + mData[event.target.value]['metadata']['id']);
+      } catch (error) {
+        setSelMData({});
+        setDsItems([]);
+        setDsParent('');
+      }
+
+
     };
     return (
       <Select
@@ -492,11 +515,65 @@ const graphJsonObj = {
           None
         </MenuItem>
         {aList.map(v => (
-          <MenuItem key={v} value={v}>{v}</MenuItem>
+          <MenuItem key={v.value} value={v.value}>{v.name}</MenuItem>
         ))}
       </Select>
     );
   };
+
+
+
+
+
+
+function IndeterminateCheckbox() {
+  const [checked, setChecked] = React.useState([true, false]);
+
+  const handleChange1 = (event) => {
+    setChecked([event.target.checked, event.target.checked]);
+  };
+
+  const handleChange2 = (event) => {
+    setChecked([event.target.checked, checked[1]]);
+  };
+
+  const handleChange3 = (event) => {
+    setChecked([checked[0], event.target.checked]);
+  };
+
+  const children = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
+      {dsItems.map(v => (
+        <FormControlLabel
+          label={v.name}
+          control={<Checkbox checked={checked[0]} onChange={handleChange2} />}
+        />
+
+      ))}
+    </Box>
+  );
+
+  return (
+    <div>
+      <FormControlLabel
+        label={dsParent}
+        control={
+          <Checkbox
+            checked={checked[0] && checked[1]}
+            indeterminate={checked[0] !== checked[1]}
+            onChange={handleChange1}
+          />
+        }
+      />
+      {children}
+    </div>
+  );
+}
+
+
+
+
+
 
   return (
     <React.StrictMode>
@@ -561,7 +638,7 @@ const graphJsonObj = {
                 dataset
               </TableCell>
               <TableCell component="th" scope="row">
-                checkbox
+                <IndeterminateCheckbox />
               </TableCell>
               <TableCell>
                 <Button variant="outlined" size="small" onClick={() => doAdd3()}>Add3</Button>

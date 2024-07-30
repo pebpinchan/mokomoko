@@ -2,6 +2,7 @@ from dao.Neo4jDao import Neo4jDao
 import hashlib
 import json
 import datetime
+import random
 
 
 from neo4j import GraphDatabase
@@ -549,9 +550,12 @@ class Neo4jService:
 
         adata = cls.exe('MATCH (c:Alias{id: "' + data['dacsdata'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) RETURN c')
         if len(adata) > 0:
-
             cls.exe('MATCH (c:Alias{id: "' + data['dacsdata'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) DELETE c')
-            cls.exe('CREATE (:Alias {pname: "' + data['alias'] + '", id: "' + data['dacsdata'] + '", ids: "", ppid: "' + data['category'] + '", pid: "' + data['group'] + '", __pmdtype: "alias", __typename: "Alias"})')
+
+
+        adata = cls.exe('MATCH (c:Alias{pname: "' + data['alias'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) RETURN c')
+        if len(adata) > 0:
+            cls.exe('CREATE (:Alias {pname: "' + data['alias'] + str(random.randrange(10)) + '", id: "' + data['dacsdata'] + '", ids: "", ppid: "' + data['category'] + '", pid: "' + data['group'] + '", __pmdtype: "alias", __typename: "Alias"})')
         else:
             cls.exe('CREATE (:Alias {pname: "' + data['alias'] + '", id: "' + data['dacsdata'] + '", ids: "", ppid: "' + data['category'] + '", pid: "' + data['group'] + '", __pmdtype: "alias", __typename: "Alias"})')
 
@@ -559,7 +563,7 @@ class Neo4jService:
         aliasies = list(map(lambda x: x['c'], adata))
         dacsArr = []
         for alias in aliasies:
-            dacsArr.append(alias['pname'])
+            dacsArr.append({'value': alias['id'], 'name': alias['pname']})
 
-        return list(set(dacsArr))
+        return dacsArr
 

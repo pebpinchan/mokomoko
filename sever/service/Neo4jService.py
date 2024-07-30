@@ -232,21 +232,24 @@ class Neo4jService:
         cls.exe('CREATE (:Alias {pname: "金具", id: "sid : mid", ids: "詳細2", ppid: "公園", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
         cls.exe('CREATE (:Alias {pname: "足",   id: "sid : mid", ids: "高さ", ppid: "公園", pid: "椅子", __pmdtype: "alias", __typename: "Alias"})')
 
+        cls.exe('CREATE (:DataSet {pppid: "家", ppid: "家具", pname: "板", ids: "fileIdA", pid: "机", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "家", ppid: "家具", pname: "足", ids: "fileIdB", pid: "机", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "家", ppid: "家具", pname: "ネジ", ids: "fileIdC", pid: "机", __pmdtype: "dataset", __typename: "DataSet"})')
+
+        cls.exe('CREATE (:DataSet {pppid: "家", ppid: "家具", pname: "木", ids: "fileIdA,fileIdB", pid: "椅子", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "家", ppid: "家具", pname: "金属", ids: "fileIdC", pid: "椅子", __pmdtype: "dataset", __typename: "DataSet"})')
+
+        cls.exe('CREATE (:DataSet {pppid: "家具", ppid: "机", pname: "2022", ids: "fileIdA", pid: "板", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "家具", ppid: "机", pname: "2023", ids: "fileIdB", pid: "ネジ", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "家具", ppid: "机", pname: "2024", ids: "fileIdC", pid: "足", __pmdtype: "dataset", __typename: "DataSet"})')
+
+        cls.exe('CREATE (:DataSet {pppid: "家具", ppid: "椅子", pname: "木", ids: "fileIdA,fileIdB", pid: "木", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "家具", ppid: "椅子", pname: "木でない", ids: "fileIdC", pid: "金属", __pmdtype: "dataset", __typename: "DataSet"})')
 
 
-        cls.exe('CREATE (:DataSet {pname: "板", ids: "fileIdA", pid: "机", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "足", ids: "fileIdB", pid: "机", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "ネジ", ids: "fileIdC", pid: "机", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "木", ids: "fileIdA,fileIdB", pid: "椅子", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "金属", ids: "fileIdC", pid: "椅子", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "2022", ids: "fileIdA", pid: "板", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "2023", ids: "fileIdB", pid: "ネジ", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "2024", ids: "fileIdC", pid: "足", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "木", ids: "fileIdA,fileIdB", pid: "木", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "木でない", ids: "fileIdC", pid: "金属", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "詳細1", ids: "fileIdA,fileIdB", pid: "ベンチ", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "詳細2", ids: "fileIdA,fileIdB", pid: "金具", __pmdtype: "dataset", __typename: "DataSet"})')
-        cls.exe('CREATE (:DataSet {pname: "高さ", ids: "fileIdC", pid: "足", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "公園", ppid: "椅子", pname: "詳細1", ids: "fileIdA,fileIdB", pid: "ベンチ", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "公園", ppid: "椅子", pname: "詳細2", ids: "fileIdA,fileIdB", pid: "金具", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "公園", ppid: "椅子", pname: "高さ", ids: "fileIdC", pid: "足", __pmdtype: "dataset", __typename: "DataSet"})')
 
         jsonStr = '{"children":[{"name":"file_id","displayName":{"ja":"ファイルID"}},{"name":"datafile_name","displayName":{"ja":"データファイル名"}},{"name":"summary","displayName":{"ja":"データファイル概要"}}]}'
         cls.exe('CREATE (:Schema {id: "sid", jsonStr: "' + jsonStr.replace('"', '\\"') + '", __pmdtype: "schema", __typename: "Schema"})')
@@ -433,6 +436,14 @@ class Neo4jService:
             cati['datas'] = []
             for groId in cati['ids'].split(','):
                 gdatas = cls.exe('MATCH (b:Group{pname:"' + groId + '", pid:"' + cati['pname'] + '"}) RETURN b')
+                print()
+                print()
+                print()
+                print(cati)
+                print(gdatas)
+                print()
+                print()
+                print()
                 group = gdatas[0]['b']
                 cati['datas'].append(group)
 
@@ -528,10 +539,10 @@ class Neo4jService:
 
 
         dacsArr = []
-        gdata = cls.exe('MATCH (b:Group{pname: "' + data['group'] + '"}) RETURN b')
+        gdata = cls.exe('MATCH (b:Group{pid: "' + data['category'] + '", pname: "' + data['group'] + '"}) RETURN b')
         if len(gdata) > 0:
             group = gdata[0]['b']
-            cls.exe('MATCH (b:Group{pname: "' + data['group'] + '"}) DELETE b')
+            cls.exe('MATCH (b:Group{pid: "' + data['category'] + '", pname: "' + data['group'] + '"}) DELETE b')
             dacsArr = group['ids'].split(',')
             dacsArr.append(data['dacsdata'])
             cls.exe('CREATE (:Group {pname: "' + data['group'] + '", ids: "' + ','.join(list(set(dacsArr))) + '", pid: "' + data['category'] + '", __pmdtype: "group", __typename: "Group"})')
@@ -548,15 +559,13 @@ class Neo4jService:
             return []
 
 
-        adata = cls.exe('MATCH (c:Alias{id: "' + data['dacsdata'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) RETURN c')
+        adata = cls.exe('MATCH (c:Alias{pname: "' + data['alias'] + '", id: "' + data['dacsdata'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) RETURN c')
         if len(adata) > 0:
-            cls.exe('MATCH (c:Alias{id: "' + data['dacsdata'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) DELETE c')
+            cls.exe('MATCH (c:Alias{pname: "' + data['alias'] + '", id: "' + data['dacsdata'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) DELETE c')
 
 
         adata = cls.exe('MATCH (c:Alias{pname: "' + data['alias'] + '", ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) RETURN c')
-        if len(adata) > 0:
-            cls.exe('CREATE (:Alias {pname: "' + data['alias'] + str(random.randrange(10)) + '", id: "' + data['dacsdata'] + '", ids: "", ppid: "' + data['category'] + '", pid: "' + data['group'] + '", __pmdtype: "alias", __typename: "Alias"})')
-        else:
+        if len(adata) == 0:
             cls.exe('CREATE (:Alias {pname: "' + data['alias'] + '", id: "' + data['dacsdata'] + '", ids: "", ppid: "' + data['category'] + '", pid: "' + data['group'] + '", __pmdtype: "alias", __typename: "Alias"})')
 
         adata = cls.exe('MATCH (c:Alias{ppid: "' + data['category'] + '", pid: "' + data['group'] + '"}) RETURN c')
@@ -566,4 +575,31 @@ class Neo4jService:
             dacsArr.append({'value': alias['id'], 'name': alias['pname']})
 
         return dacsArr
+
+
+    @classmethod
+    def saveDataSet(cls, data):
+        if not any(data):
+            return []
+
+        ddata = cls.exe('MATCH (d:DataSet{pname: "' + data['dataset'] + '", pppid: "' + data['pppid'] + '", ppid: "' + data['ppid'] + '", pid: "' + data['alias'] + '"}) RETURN d')
+        if len(ddata) > 0:
+            cls.exe('MATCH (d:DataSet{pname: "' + data['dataset'] + '", pppid: "' + data['pppid'] + '", ppid: "' + data['ppid'] + '", pid: "' + data['alias'] + '"}) DELETE d')
+
+        cls.exe('CREATE (:DataSet {pname: "' + data['dataset'] + '", pppid: "' + data['pppid'] + '", ids: "' + data['ids'] + '", ppid: "' + data['ppid'] + '", pid: "' + data['alias'] + '", __pmdtype: "dataset", __typename: "DataSet"})')
+
+
+        adata = cls.exe('MATCH (c:Alias{pname: "' + data['alias'] + '", ppid: "' + data['pppid'] + '", pid: "' + data['ppid'] + '"}) RETURN c')
+        alias = adata[0]['c']
+        cls.exe('MATCH (c:Alias{pname: "' + data['alias'] + '", ppid: "' + data['pppid'] + '", pid: "' + data['ppid'] + '"}) DELETE c')
+
+        aliasValueArr = []
+        if len(alias['ids']) > 0:
+            aliasValueArr = alias['ids'].split(',')
+        aliasValueArr.append(data['dataset'])
+
+        cls.exe('CREATE (:Alias {pname: "' + data['alias'] + '", id: "' + alias['id'] + '", ids: "' + ','.join(list(set(aliasValueArr))) + '", ppid: "' + data['pppid'] + '", pid: "' + data['ppid'] + '", __pmdtype: "alias", __typename: "Alias"})')
+
+        return []
+
 

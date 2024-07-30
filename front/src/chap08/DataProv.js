@@ -186,7 +186,7 @@ class CustomNode extends React.PureComponent {
 
   const [dsParent, setDsParent] = useState("");
   const [dsItems, setDsItems] = useState([]);
-  const [selDsItems, setSelDsItems] = useState([]);
+  const [selDsItems, setSelDsItems] = useState('');
   const [selMData, setSelMData] = useState("{}");
   const [mData, setMData] = useState("{}");
   const [text3, setText3] = useState("橋梁"); // category
@@ -198,11 +198,12 @@ class CustomNode extends React.PureComponent {
   const [textA, setTextA] = useState("図面データ"); // group
   const [aList, setAList] = useState([]); // select alias list
   const [selA, setSelA] = useState(''); // selected dacs
+  const [textDs, setTextDs] = useState(""); // dataset
   const [data4, setData4] = useState([]);
   const [data, setData] = useState(initial);
   const [token, setToken] = useState("9d2ad0e79acbfad52bea1c89ac71755170be5c7a9684d1ef45298386ec2470eb");
   const [example, setExample] = useState("");
-
+  const [checked, setChecked] = useState([true, false, true]);
 
 
 
@@ -248,17 +249,27 @@ async function doInit() {
   }
 
   async function doAdd3() {
-    if (text3 && textG && selDC) {
+    if (text3 && textG && selDsItems && textDs && checked.some(value => value)) {
+
+      let arrValues = [];
+      for (let i = 0; i < checked.length; i++) {
+        if (checked[i]) {
+          dsItems.forEach((keyItem) => {
+            if (i == keyItem.value) arrValues.push(keyItem.name);
+          });
+        }
+      }
+
       let datan = {};
-      datan['category'] = text3;
-      datan['group'] = textG;
-      datan['dacsdata'] = selDC;
-      const response = await axios.post("http://172.23.67.87:5000/api/i/up", datan, {headers: {"Token":token, 'Content-Type': 'application/json'}});
-      setTextDC2(response.data);
+      datan['alias'] = selDsItems;
+      datan['ids'] = arrValues.join(',');
+      datan['dataset'] = textDs;
+      datan['ppid'] = textG;
+      datan['pppid'] = text3;
+        
+      const response = await axios.post("http://172.23.67.87:5000/api/i/lw", datan, {headers: {"Token":token, 'Content-Type': 'application/json'}});
       await doXY(text3);
     }
-
-
   }
   async function doXY(selectV) {
     try {
@@ -488,19 +499,25 @@ const graphJsonObj = {
     const handleChange = async (event) => {
       setSelA(event.target.value);
       try {
-        setSelMData(mData[event.target.value]);
-        const arrVi = mData[event.target.value]['metadata']['data']['list'].map((value, index) => {
+        const found = aList.find((element) => element.name == event.target.value);
+        setSelMData(mData[found.value]);
+        let cheList = [];
+        const arrVi = mData[found.value]['metadata']['data']['list'].map((value, index) => {
+          cheList.push(true);
           return {'value': index, 'name': value.data.file_id};
         });
+
+        setSelDsItems(event.target.value);
+
+        setChecked(cheList);
         setDsItems(arrVi);
-        setDsParent(mData[event.target.value]['schema']['id'] + ' : ' + mData[event.target.value]['metadata']['id']);
+        setDsParent(mData[found.value]['schema']['id'] + ' : ' + mData[found.value]['metadata']['id']);
       } catch (error) {
         setSelMData({});
         setDsItems([]);
+        setChecked([]);
         setDsParent('');
       }
-
-
     };
     return (
       <Select
@@ -515,7 +532,7 @@ const graphJsonObj = {
           None
         </MenuItem>
         {aList.map(v => (
-          <MenuItem key={v.value} value={v.value}>{v.name}</MenuItem>
+          <MenuItem key={v.name} value={v.name}>{v.name}</MenuItem>
         ))}
       </Select>
     );
@@ -527,18 +544,18 @@ const graphJsonObj = {
 
 
 function IndeterminateCheckbox() {
-  const [checked, setChecked] = React.useState([true, false]);
 
   const handleChange1 = (event) => {
-    setChecked([event.target.checked, event.target.checked]);
+    let newC = Array.from(checked);
+    for (let i = 0; i < newC.length; i++)
+      newC[i] = event.target.checked;
+    setChecked(newC);
   };
 
-  const handleChange2 = (event) => {
-    setChecked([event.target.checked, checked[1]]);
-  };
-
-  const handleChange3 = (event) => {
-    setChecked([checked[0], event.target.checked]);
+  const handleChange2 = (event, ten) => {
+    let newC = Array.from(checked);
+    newC[ten] = event.target.checked;
+    setChecked(newC);
   };
 
   const children = (
@@ -546,7 +563,7 @@ function IndeterminateCheckbox() {
       {dsItems.map(v => (
         <FormControlLabel
           label={v.name}
-          control={<Checkbox checked={checked[0]} onChange={handleChange2} />}
+          control={<Checkbox checked={checked[v.value]} onChange={(event) => handleChange2(event, v.value)} />}
         />
 
       ))}
@@ -559,8 +576,8 @@ function IndeterminateCheckbox() {
         label={dsParent}
         control={
           <Checkbox
-            checked={checked[0] && checked[1]}
-            indeterminate={checked[0] !== checked[1]}
+            checked={checked.every(value => value)}
+            indeterminate={checked.some(value => !value) && !checked.every(value => !value)}
             onChange={handleChange1}
           />
         }
@@ -635,7 +652,7 @@ function IndeterminateCheckbox() {
                 <Litem />
               </TableCell>
               <TableCell>
-                dataset
+                <TextField value={textDs} onChange={(event) => setTextDs(event.target.value)} label="DataSet" variant="standard" />
               </TableCell>
               <TableCell component="th" scope="row">
                 <IndeterminateCheckbox />

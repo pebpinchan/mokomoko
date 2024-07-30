@@ -180,5 +180,12 @@ def dasavemid():
         dataRes = service.saveAlias(data)
     return make_response(jsonify(dataRes))
 
-
+@apis.route("/i/lw", methods=['POST'])
+def saveDataSet():
+    dh = dict(request.headers)
+    dataRes = []
+    if service.isAdmin(dh['Token']):
+        data = request.json
+        dataRes = service.saveDataSet(data)
+    return make_response(jsonify(dataRes))
 

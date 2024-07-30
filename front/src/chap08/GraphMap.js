@@ -232,181 +232,6 @@ class CustomNode extends React.PureComponent {
       setJcol('{\n' + headerTxt + bodyTxt);
   }
 
-  async function doXY2(label, __pmdtype) {
-    if ('catalog' == __pmdtype) {
-      await doXY();
-    } else if ('dataset' == __pmdtype) {
-
-
-      const res = await axios.get('http://172.23.67.87:5000/api/hdatas', {headers: {"Token":token}, data:{}});
-      const addHeight = 200;
-      if (res.data) {
-        const rcatalog = res.data;
-        let list = [];
-        let listLink = [];
-        list.push({
-          id: '0',
-          label: rcatalog.title,
-          data: rcatalog,
-          position: { x: 50, y: 0 + addHeight }
-        });
-        let countV = 1;
-        let datasetNV = '';
-        for (let i = 0; i < rcatalog.datasets.length; i++) {
-          countV += 1;
-
-          if (label == rcatalog.datasets[i].title) {
-            datasetNV = rcatalog.datasets[i].title;
-            list.push({
-              id: countV,
-              label: rcatalog.datasets[i].title,
-              position: { x: 50, y: 0 },
-              data: rcatalog.datasets[i]
-            });
-          } else {
-            list.push({
-              id: countV,
-              label: rcatalog.datasets[i].title,
-              position: { x: 250, y: (i + 1) * 100 + addHeight },
-              data: rcatalog.datasets[i]
-            });
-          }
-          listLink.push({source: "0", target: countV});
-          const idvvv = countV;
-          for (let j = 0; j < rcatalog.datasets[i].datas.length; j++) {
-            countV += 1;
-            if (label == rcatalog.datasets[i].datas[j].title) {
-              list.push({
-                id: countV,
-                label: rcatalog.datasets[i].datas[j].title,
-                position: { x: 50, y: 0 },
-                data: rcatalog.datasets[i].datas[j]
-              });
-            } else {
-              if (datasetNV == rcatalog.datasets[i].title) {
-                list.push({
-                  id: countV,
-                  label: rcatalog.datasets[i].datas[j].title,
-                  position: { x: 300 + ((j + 1) * 200), y: 200 },
-                  data: rcatalog.datasets[i].datas[j]
-                });
-              } else {
-                list.push({
-                  id: countV,
-                  label: rcatalog.datasets[i].datas[j].title,
-                  position: { x: 300 + ((j + 1) * 200), y: ((i + 1) * 100) + 100 + addHeight },
-                  data: rcatalog.datasets[i].datas[j]
-                });
-              }
-            }
-            listLink.push({source: idvvv, target: countV});
-          }
-        }
-        const ini = {
-          nodes: list,
-          edges: listLink,
-          isStatic: true,
-          isVertical: true,
-          isDirected: true,
-          height: 150 * rcatalog.datasets.length + addHeight,
-        };
-        await setData(ini);
-        await setText2(label);
-      }
-
-
-
-
-
-
-    } else if ('data' == __pmdtype) {
-
-
-
-      const res = await axios.get('http://172.23.67.87:5000/api/hdatas', {headers: {"Token":token}, data:{}});
-      const addHeight = 200;
-      if (res.data) {
-        const rcatalog = res.data;
-        let list = [];
-        let listLink = [];
-        list.push({
-          id: '0',
-          label: rcatalog.title,
-          data: rcatalog,
-          position: { x: 50, y: 0 + addHeight }
-        });
-        let countV = 1;
-        let datasetNV = '';
-        for (let i = 0; i < rcatalog.datasets.length; i++) {
-          countV += 1;
-
-          const result = rcatalog.datasets[i].datas.filter((ddata) => label == ddata.title);
-          if (result.length > 0) {
-            datasetNV = rcatalog.datasets[i].title;
-            list.push({
-              id: countV,
-              label: rcatalog.datasets[i].title,
-              position: { x: 50, y: 100 },
-              data: rcatalog.datasets[i]
-            });
-          } else {
-            list.push({
-              id: countV,
-              label: rcatalog.datasets[i].title,
-              position: { x: 250, y: (i + 1) * 100 + addHeight },
-              data: rcatalog.datasets[i]
-            });
-          }
-          listLink.push({source: "0", target: countV});
-          const idvvv = countV;
-          for (let j = 0; j < rcatalog.datasets[i].datas.length; j++) {
-            countV += 1;
-            if (label == rcatalog.datasets[i].datas[j].title) {
-              list.push({
-                id: countV,
-                label: rcatalog.datasets[i].datas[j].title,
-                position: { x: 50, y: 0 },
-                data: rcatalog.datasets[i].datas[j]
-              });
-            } else {
-              if (datasetNV == rcatalog.datasets[i].title) {
-                list.push({
-                  id: countV,
-                  label: rcatalog.datasets[i].datas[j].title,
-                  position: { x: 300 + ((j + 1) * 200), y: 200 },
-                  data: rcatalog.datasets[i].datas[j]
-                });
-              } else {
-                list.push({
-                  id: countV,
-                  label: rcatalog.datasets[i].datas[j].title,
-                  position: { x: 300 + ((j + 1) * 200), y: ((i + 1) * 100) + 100 + addHeight },
-                  data: rcatalog.datasets[i].datas[j]
-                });
-              }
-            }
-            listLink.push({source: idvvv, target: countV});
-          }
-        }
-        const ini = {
-          nodes: list,
-          edges: listLink,
-          isStatic: true,
-          isVertical: true,
-          isDirected: true,
-          height: 150 * rcatalog.datasets.length + addHeight,
-        };
-        await setData(ini);
-        await setText2(label);
-      }
-
-
-
-    } else {
-      alert('type error');
-    }
-
-  }
   async function doXY(selectV) {
     try {
       if (!selectV) {
@@ -456,7 +281,7 @@ class CustomNode extends React.PureComponent {
             data: pfDatas[keyItem]
           });
           pfDataIdMap[keyItem] = countV;
-          pfDataHeight += 200;
+          pfDataHeight += 100;
         });
 
 
@@ -618,6 +443,19 @@ const graphJsonObj = {
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
           <TableBody>
+
+            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+              <TableCell component="th" scope="row">
+                <InputLabel id="demo-simple-select-standard-label">Category</InputLabel>
+                <Litem />
+              </TableCell>
+              <TableCell>
+              </TableCell>
+              <TableCell>
+                <Button variant="outlined" size="small" onClick={() => doXY()}>Init</Button>
+              </TableCell>
+            </TableRow>
+
             <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
               <TableCell component="th" scope="row">
               </TableCell>
@@ -627,17 +465,7 @@ const graphJsonObj = {
                 <Button variant="outlined" size="small" onClick={() => doSomethingWithArg()}>Create</Button>
               </TableCell>
             </TableRow>
-            <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">
-              </TableCell>
-              <TableCell>
-                <InputLabel id="demo-simple-select-standard-label">Category</InputLabel>
-                <Litem />
-              </TableCell>
-              <TableCell>
-                <Button variant="outlined" size="small" onClick={() => doXY()}>Init</Button>
-              </TableCell>
-            </TableRow>
+
           </TableBody>
         </Table>
       </TableContainer>

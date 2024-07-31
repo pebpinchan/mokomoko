@@ -36,7 +36,7 @@ squ = """
 type Query {
     datas(title: String!): [SearchDataResult]!
     links(start: String, end: String): SearchResult
-    export(category: String!): Category
+    export(category: String!, group: String): Category
 }
 
 type Category {
@@ -240,20 +240,10 @@ def resolve_datas(_, info, title):
     return arr
 
 @query.field("export")
-def resolve_export(_, info, category: str):
+def resolve_export(_, info, category: str, group: str):
 
-
-
-
-
-
-
-
-
-
-
-
-
+    groClause = len(group) > 0
+    groValue = group
 
     catClause = '{pname: "' + category + '"}'
 
@@ -264,6 +254,9 @@ def resolve_export(_, info, category: str):
     dacsDatas = {}
     fileDatas = {}
     for groId in cati['ids'].split(','):
+        if groClause and groValue != groId:
+            continue
+
         gdatas = exe('MATCH (b:Group{pname:"' + groId + '", pid:"' + cati['pname'] + '"}) RETURN b')
         group = gdatas[0]['b']
         cati['datas'].append(group)

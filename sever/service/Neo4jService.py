@@ -424,10 +424,12 @@ class Neo4jService:
         return r
 
     @classmethod
-    def pdatas(cls, value):
+    def pdatas(cls, value, gValue):
         catClause = ''
         if len(value) > 0:
             catClause = '{pname: "' + value + '"}'
+
+        groClause = len(gValue) > 0
 
         cdatas = cls.exe('MATCH (a:Category' + catClause + ') RETURN a')
         categorys = list(map(lambda x: x['a'], cdatas))
@@ -435,6 +437,9 @@ class Neo4jService:
         for cati in categorys:
             cati['datas'] = []
             for groId in cati['ids'].split(','):
+                if groClause and gValue != groId:
+                    continue
+
                 gdatas = cls.exe('MATCH (b:Group{pname:"' + groId + '", pid:"' + cati['pname'] + '"}) RETURN b')
                 print()
                 print()
@@ -485,7 +490,7 @@ class Neo4jService:
 
 
     @classmethod
-    def pfdata(cls, value):
+    def pfdata(cls, value, gValue):
         catClause = ''
         if len(value) > 0:
             catClause = '{pname: "' + value + '"}'

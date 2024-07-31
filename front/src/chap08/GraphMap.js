@@ -141,10 +141,18 @@ class CustomNode extends React.PureComponent {
           transition: "left 300ms, top 300ms"
         }}
         onChange={(newGraphJSON) => setData(newGraphJSON)}
-        onClick={() => {
+        onClick={async () => {
           setExample(node.data);
 
+          if (text3 && node.data.__pmdtype == 'group') {
+            setText2(node.data.pname);
+            await doXY(text3, node.data.pname);
+          }
 
+          if (text3 && node.data.__pmdtype == 'category') {
+            setText2('');
+            await doXY(text3, '');
+          }
 
         }}
       >
@@ -188,11 +196,9 @@ class CustomNode extends React.PureComponent {
 
 
 
-  const [text, setText] = useState("y.yokouchi@pebblecorp.co.jp");
   const [text2, setText2] = useState("");
   const [text3, setText3] = useState("");
   const [data, setData] = useState(initial);
-  const [data2, setData2] = useState(initial);
   const [data3, setData3] = useState(initial);
   const [data4, setData4] = useState([]);
   const [token, setToken] = useState("9d2ad0e79acbfad52bea1c89ac71755170be5c7a9684d1ef45298386ec2470eb");
@@ -203,7 +209,7 @@ class CustomNode extends React.PureComponent {
   const [jcol, setJcol] = useState("");
   async function doSomethingWithArg() {
     if (text3.length == 0) return;
-      let headerTxt = '  export(category: "' + text3 + '") {';
+      let headerTxt = '  export(category: "' + text3 + '", group: "' + text2 + '") {';
       const bodyTxt = `
     pname
     datas {
@@ -232,12 +238,12 @@ class CustomNode extends React.PureComponent {
       setJcol('{\n' + headerTxt + bodyTxt);
   }
 
-  async function doXY(selectV) {
+  async function doXY(selectV, selectGV = '') {
     try {
       if (!selectV) {
         selectV = text3;
       }
-      const res = await axios.get('http://172.23.67.87:5000/api/pdatas?v=' + selectV, {headers: {"Token":token}, data:{}});
+      const res = await axios.get('http://172.23.67.87:5000/api/pdatas?v=' + selectV + '&g=' + selectGV, {headers: {"Token":token}, data:{}});
       if (res.data) {
         const res2 = await axios.get('http://172.23.67.87:5000/api/pdacs?v=' + selectV, {headers: {"Token":token}, data:{}});
         const mapDatas = res2.data;
@@ -247,7 +253,7 @@ class CustomNode extends React.PureComponent {
           delete mapDatas[keyItem]["metadata"]['jsonStr'];
           delete mapDatas[keyItem]["schema"]['jsonStr'];
         });
-        const res3 = await axios.get('http://172.23.67.87:5000/api/pfdata?v=' + selectV, {headers: {"Token":token}, data:{}});
+        const res3 = await axios.get('http://172.23.67.87:5000/api/pfdata?v=' + selectV + '&g=' + selectGV, {headers: {"Token":token}, data:{}});
         const pfDatas = res3.data;
 
         const res4 = await axios.get('http://172.23.67.87:5000/api/pcdata', {headers: {"Token":token}, data:{}});
@@ -408,6 +414,7 @@ const graphJsonObj = {
   const Litem = () => {
     const handleChange = async (event) => {
       setText3(event.target.value);
+      setText2('');
       await doXY(event.target.value);
     };
     return (
@@ -450,6 +457,7 @@ const graphJsonObj = {
                 <Litem />
               </TableCell>
               <TableCell>
+                <TextField value={text2} onChange={(event) => setText2(event.target.value)} label="Group" variant="standard" />
               </TableCell>
               <TableCell>
                 <Button variant="outlined" size="small" onClick={() => doXY()}>Init</Button>

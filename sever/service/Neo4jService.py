@@ -257,6 +257,35 @@ class Neo4jService:
         cls.exe('CREATE (:MetaData {id: "mid", jsonStr: "' + jsonStr.replace('"', '\\"') + '", __pmdtype: "metadata", __typename: "MetaData"})')
         cls.exe('Match(a:MetaData{id: "mid"})\nMatch(b:Schema {id: "sid"})\nCREATE (a)<-[:MetaDataHasSchema{id: "sid : mid"}]-(b)')
 
+
+        cls.exe('CREATE (:Category {pname: "カタログ", ids: "フォルダ", __pmdtype: "category", __typename: "Category"})')
+        cls.exe('CREATE (:Group {pname: "フォルダ", ids: "sid : mid", pid: "カタログ", __pmdtype: "group", __typename: "Group"})')
+        cls.exe('CREATE (:Alias {pname: "フォルダ", id: "sid : mid", ids: "sid2 : mid2", ppid: "カタログ", pid: "フォルダ", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:DataSet {pppid: "カタログ", ppid: "フォルダ", pname: "sid2 : mid2", ids: "fileIdA", pid: "フォルダ", __pmdtype: "dataset", __typename: "DataSet"})')
+
+
+
+        cls.exe('CREATE (:Category {pname: "橋梁", ids: "スラブ", __pmdtype: "category", __typename: "Category"})')
+        cls.exe('CREATE (:Group {pname: "スラブ", ids: "sx1 : mx1", pid: "橋梁", __pmdtype: "group", __typename: "Group"})')
+        cls.exe('CREATE (:Alias {pname: "上部工", id: "sx1 : mx1", ids: "平面図,側面図,断面図,構造高表,平面線形", ppid: "橋梁", pid: "スラブ", __pmdtype: "alias", __typename: "Alias"})')
+        cls.exe('CREATE (:DataSet {pppid: "橋梁", ppid: "スラブ", pname: "平面図", ids: "C0AL004Z", pid: "上部工", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "橋梁", ppid: "スラブ", pname: "側面図", ids: "C0AL042Z", pid: "上部工", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "橋梁", ppid: "スラブ", pname: "断面図", ids: "C0GA029Z", pid: "上部工", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "橋梁", ppid: "スラブ", pname: "構造高表", ids: "C0AL004Z,C0AL042Z", pid: "上部工", __pmdtype: "dataset", __typename: "DataSet"})')
+        cls.exe('CREATE (:DataSet {pppid: "橋梁", ppid: "スラブ", pname: "平面線形", ids: "C0AL004Z", pid: "上部工", __pmdtype: "dataset", __typename: "DataSet"})')
+
+        jsonStr = '{"children":[{"name":"file_id","displayName":{"ja":"ファイルID"}},{"name":"datafile_name","displayName":{"ja":"データファイル名"}}]}'
+        cls.exe('CREATE (:Schema {id: "sx1", jsonStr: "' + jsonStr.replace('"', '\\"') + '", __pmdtype: "schema", __typename: "Schema"})')
+        jsonStr = '{\"list\":[{\"data\":{\"file_id\":\"fileIdA\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/出力1.ply\"}},{\"data\":{\"file_id\":\"fileIdB\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/出力2.ply\"}},{\"data\":{\"file_id\":\"fileIdC\",\"datafile_name\":\"f977c241-e6f1-4ae0-b1d9-00719befca73/出力3.zip\"}}]}'
+
+
+        jsonStr = '{\"list\":[{\"data\":{\"file_id\":\"C0AL004Z\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/C0AL004Z.P21\"}},{\"data\":{\"file_id\":\"C0AL042Z\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/C0AL042Z.P21\"}},{\"data\":{\"file_id\":\"C0GA029Z\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/C0GA029Z.P21\"}},{\"data\":{\"file_id\":\"C0GA030Z\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/C0GA030Z.P21\"}},{\"data\":{\"file_id\":\"C0GA033Z\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/C0GA033Z.P21\"}},{\"data\":{\"file_id\":\"C0GA034Z\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/C0GA034Z.P21\"}},{\"data\":{\"file_id\":\"C0GA107Z\",\"datafile_name\":\"efff13f2-cf32-41ad-9443-ba2b1c40fd5a/C0GA107Z.P21\"}}]}'
+
+
+        cls.exe('CREATE (:MetaData {id: "mx1", jsonStr: "' + jsonStr.replace('"', '\\"') + '", __pmdtype: "metadata", __typename: "MetaData"})')
+        cls.exe('Match(a:MetaData{id: "mx1"})\nMatch(b:Schema {id: "sx1"})\nCREATE (a)<-[:MetaDataHasSchema{id: "sx1 : mx1"}]-(b)')
+
+
         r = cls.exe('Match(a)<-[r:TestLink]-(b) return a, b')
         return r 
 

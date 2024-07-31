@@ -190,15 +190,15 @@ class CustomNode extends React.PureComponent {
   const [selMData, setSelMData] = useState("{}");
   const [mData, setMData] = useState("{}");
   const [text3, setText3] = useState("橋梁"); // category
-  const [textG, setTextG] = useState("スラブ"); // group
+  const [textG, setTextG] = useState("構造高表"); // group
   const [textDC, setTextDC] = useState([]); // select dacs list
   const [textDC2, setTextDC2] = useState([]); // select dacs list
   const [selDC, setSelDC] = useState(''); // selected dacs
   const [selDC2, setSelDC2] = useState(''); // selected dacs
-  const [textA, setTextA] = useState("図面データ"); // group
+  const [textA, setTextA] = useState("スラブ"); // group
   const [aList, setAList] = useState([]); // select alias list
   const [selA, setSelA] = useState(''); // selected dacs
-  const [textDs, setTextDs] = useState(""); // dataset
+  const [textDs, setTextDs] = useState("上部工"); // dataset
   const [data4, setData4] = useState([]);
   const [data, setData] = useState(initial);
   const [token, setToken] = useState("9d2ad0e79acbfad52bea1c89ac71755170be5c7a9684d1ef45298386ec2470eb");
@@ -279,7 +279,7 @@ async function doInit() {
       if (!selectV) return;
         
       
-      const res = await axios.get('http://172.23.67.87:5000/api/pdatas?v=' + selectV, {headers: {"Token":token}, data:{}});
+      const res = await axios.get('http://172.23.67.87:5000/api/pdatas?g=&v=' + selectV, {headers: {"Token":token}, data:{}});
       if (res.data) {
         const res2 = await axios.get('http://172.23.67.87:5000/api/pdacs?v=' + selectV, {headers: {"Token":token}, data:{}});
         const mapDatas = res2.data;
